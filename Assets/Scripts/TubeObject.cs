@@ -9,7 +9,6 @@ public class TubeObject : MonoBehaviour, IPointerDownHandler
 {
     public List<GameObject> posList = new List<GameObject>();
     public GameObject posTop;
-    public GameObject ballList;
     
     
     public void OnPointerDown(PointerEventData eventData)
