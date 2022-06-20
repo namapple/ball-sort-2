@@ -1,5 +1,7 @@
-﻿public class LevelData
+﻿using System.Collections.Generic;
+
+public class LevelData
 {
-    public int numbStackp;
-    public int bubbleTypes;
+    public int numStack;
+    public List<int> bubbleTypes;
 }
