@@ -4,5 +4,5 @@ using UnityEngine;
 
 public class TubeLayout : MonoBehaviour
 {
-    public List<TubeObject> tubeLayout = new List<TubeObject>();
+    public List<TubeObject> tubeList = new List<TubeObject>();
 }
