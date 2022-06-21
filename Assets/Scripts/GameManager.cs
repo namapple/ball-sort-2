@@ -28,6 +28,7 @@ public class GameManager : MonoBehaviour
     public int currentLevel;
 
     public TubeObject selectedTube = null;
+    private bool isSelected;
 
     private void Start()
     {
@@ -117,40 +118,71 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void OnClickTubeObject(TubeObject tubeObject)
+    public void OnClickTubeObject(TubeObject tube)
     {
         // Case: click vào tube rỗng/tube full ball cùng màu -> k làm gì
-        if (tubeObject.IsTubeEmpty() || tubeObject.IsTubeDone())
+        if (tube.IsTubeEmpty() && isSelected == false)
         {
-            Debug.Log("EMPTY----DONE");
+            Debug.Log("Click lần đầu vào TUBE rỗng");
             return;
         }
 
-        // Case: click vào tube hợp lệ: gán tube đang click cho SelectedTube,
         if (selectedTube == null)
         {
-            Debug.Log("selectedTube = null");
-            selectedTube = tubeObject;
+            selectedTube = tube;
+            isSelected = true;
+            Debug.Log("Click vào TUBE đủ điều kiện move BALL");
             // Thực hiện move ball trên cùng của Tube đang chọn lên vị trí posTop của tube đang chọn
-            tubeObject.ballObjects[tubeObject.ballObjects.Count - 1].transform
-                .DOMove(tubeObject.posTop.transform.position, 0.5f);
+            tube.ballObjects[tube.ballObjects.Count - 1].transform
+                .DOMove(tube.posTop.transform.position, 0.15f);
         }
+        // Case: Click vào chính ball đang chọn -> move ball xuống
         else
         {
-            // Case: Click vào chính ball đang chọn -> move ball xuống
-            if (selectedTube == tubeObject)
+            if (selectedTube == tube && isSelected)
             {
-                tubeObject.posTop.transform
-                    .DOMove(tubeObject.ballObjects[tubeObject.ballObjects.Count - 1].transform.position,
-                        0.5f);
+                Debug.Log("Click vào chính TUBE đang chọn");
+                selectedTube.ballObjects[selectedTube.ballObjects.Count - 1].transform
+                    .DOMove(
+                        selectedTube.posList[selectedTube.ballObjects.Count - 1].transform
+                            .position, 0.15f);
+                selectedTube = null;
+                isSelected = false;
+                Debug.Log("Move Ball về vị trí cũ");
             }
             else
             {
-                Debug.Log("Clicked tube 2");
+                TubeObject tube2 = tube;
+                // Debug.Log(tube2);
+                if (tube2.IsTubeFull() == false || tube2.IsTubeEmpty() && tube2.ballObjects[tube2.ballObjects.Count - 1].type != selectedTube
+                        .ballObjects[selectedTube.ballObjects.Count - 1].type)
+                {
+                    Debug.Log("Đủ đkiện nhận ball");
+                    tube2.ballObjects.Add(
+                        selectedTube.ballObjects[selectedTube.ballObjects.Count - 1]);
+                    selectedTube.ballObjects[selectedTube.ballObjects.Count - 1].transform
+                        .DOMove(tube2.posTop.transform.position,
+                            0.15f).OnComplete(() =>
+                        {
+                            tube2.ballObjects[tube2.ballObjects.Count - 1].transform.DOMove(
+                                tube2.posList[tube2.ballObjects.Count - 1].transform.position,
+                                0.15f);
+                        });
+                    selectedTube.ballObjects.Remove(
+                        selectedTube.ballObjects[selectedTube.ballObjects.Count - 1]);
+                    // tube2.ballObjects.Add(selectedTube.ballObjects[selectedTube.ballObjects.Count - 1]);
+                    selectedTube = null;
+                    isSelected = false;
+                }
+                else
+                {
+                    Debug.Log("Không thỏa mãn điều kiện MOVE");
+                    selectedTube = null;
+                    isSelected = false;
+                    return;
+                }
             }
         }
-
-        
 
 
         // Click lại vào tube đang chọn (tube 1): ball đi xuống

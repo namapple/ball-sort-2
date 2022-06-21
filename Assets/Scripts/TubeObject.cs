@@ -11,13 +11,27 @@ public class TubeObject : MonoBehaviour, IPointerDownHandler
     public GameObject posTop;
     public List<BallObject> ballObjects = new List<BallObject>();
     public Action<TubeObject> onClickTube;
+    private int MAX_BALL = 4;
 
     public void OnPointerDown(PointerEventData eventData)
     {
+        if (IsTubeDone())
+        {
+            return;
+        }
         onClickTube?.Invoke(this);
     }
 
 
+    public bool IsTubeFull()
+    {
+        if (ballObjects.Count < MAX_BALL)
+        {
+            return false;
+        }
+
+        return true;
+    }
     public bool IsTubeEmpty()
     {
         if (ballObjects.Count != 0)
@@ -30,7 +44,7 @@ public class TubeObject : MonoBehaviour, IPointerDownHandler
 
     public bool IsTubeDone()
     {
-        if (ballObjects.Count != 4)
+        if (ballObjects.Count != MAX_BALL)
         {
             return false;
         }
