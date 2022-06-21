@@ -14,7 +14,6 @@ public class TubeObject : MonoBehaviour, IPointerDownHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        Debug.Log("OnPointerDown: " + gameObject.name);
         onClickTube?.Invoke(this);
     }
 

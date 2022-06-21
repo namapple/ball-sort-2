@@ -20,7 +20,7 @@ public class GameManager : MonoBehaviour
     public LevelData levelData;
     public GameObject tubeRoot;
     public GameObject itemBalls;
-    public GameState state = GameState.PLAYING; 
+    public GameState state = GameState.PLAYING;
 
     public List<BallObject> ballList = new List<BallObject>();
     private TubeLayout tubeLayoutComponent;
@@ -66,11 +66,11 @@ public class GameManager : MonoBehaviour
         {
             Destroy(ballList[i].gameObject);
         }
+
         ballList.Clear();
         // Đường dẫn của prefab
         LevelData data = LoadLevelData();
         string tubeLayoutPath = Path.Combine("Prefabs", "Tubes", "Tube_" + data.numStack);
-        Debug.Log(tubeLayoutPath);
         // Load prefab theo đường dẫn
         GameObject tubeLayoutPrefab = Resources.Load<GameObject>(tubeLayoutPath);
 
@@ -78,7 +78,7 @@ public class GameManager : MonoBehaviour
         GameObject tubeLayoutObj = Instantiate(tubeLayoutPrefab, tubeRoot.transform, false);
         // Lấy component để truy cập tubeList
         tubeLayoutComponent = tubeLayoutObj.GetComponent<TubeLayout>();
-        
+
         //chạy loop qua tubeList để subscribe Action OnClickTube
         for (int i = 0; i < tubeLayoutComponent.tubeList.Count; i++)
         {
@@ -93,7 +93,7 @@ public class GameManager : MonoBehaviour
 
             string ballPath = Path.Combine("Prefabs", "Balls", "Ball" + data.bubbleTypes[i]);
             GameObject ballPrefab = Resources.Load<GameObject>(ballPath);
-            
+
 
             GameObject ballObject = Instantiate(ballPrefab,
                 itemBalls.transform, false);
@@ -103,10 +103,10 @@ public class GameManager : MonoBehaviour
             ballObjectComponent.type = data.bubbleTypes[i];
             // Add hết các ball đã tạo ra vào 1 list
             ballList.Add(ballObjectComponent);
-            
+
             //Add ball vào từng tube theo tubeIndex
             tubeLayoutComponent.tubeList[tubeIndex].ballObjects.Add(ballObjectComponent);
-            
+
             //Đặt ballobject vào vị trí các pos trong postList
             ballObject.transform.position =
                 tubeLayoutComponent.tubeList[tubeIndex].posList[ballIndex].transform.position;
@@ -119,34 +119,45 @@ public class GameManager : MonoBehaviour
 
     public void OnClickTubeObject(TubeObject tubeObject)
     {
-        Debug.Log("---Clicked tube---");
-        if (tubeObject.IsTubeDone() || tubeObject.IsTubeEmpty() || tubeObject.ballObjects.Count == 0)
+        // Case: click vào tube rỗng/tube full ball cùng màu -> k làm gì
+        if (tubeObject.IsTubeEmpty() || tubeObject.IsTubeDone())
         {
+            Debug.Log("EMPTY----DONE");
             return;
         }
 
+        // Case: click vào tube hợp lệ: gán tube đang click cho SelectedTube,
         if (selectedTube == null)
         {
+            Debug.Log("selectedTube = null");
             selectedTube = tubeObject;
+            // Thực hiện move ball trên cùng của Tube đang chọn lên vị trí posTop của tube đang chọn
+            tubeObject.ballObjects[tubeObject.ballObjects.Count - 1].transform
+                .DOMove(tubeObject.posTop.transform.position, 0.5f);
         }
-        // Click vào 1 tube bất kỳ có ball, move ball lên posTop
-        tubeObject.ballObjects[tubeObject.ballObjects.Count - 1].transform
-            .DOMove(tubeObject.posTop.transform.position, 0.5f);
-        
+        else
+        {
+            // Case: Click vào chính ball đang chọn -> move ball xuống
+            if (selectedTube == tubeObject)
+            {
+                tubeObject.posTop.transform
+                    .DOMove(tubeObject.ballObjects[tubeObject.ballObjects.Count - 1].transform.position,
+                        0.5f);
+            }
+            else
+            {
+                Debug.Log("Clicked tube 2");
+            }
+        }
+
         
 
 
-        
-        
-        
-        
         // Click lại vào tube đang chọn (tube 1): ball đi xuống
-        
+
         // Click vào tube 2:
         // Case 1: tube 2 rỗng -> move ball từ tube 1 sang tube 2
         // Case 2: tube 2 có ball -> Check xem ball trên cùng của tube 2 có cùng màu với ball được chọn k
         // Nếu cùng màu: check xem tube 2 full chưa, chưa full thì move, full rồi thì k làm gì
     }
-    
-    
 }
