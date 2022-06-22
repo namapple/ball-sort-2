@@ -22,6 +22,8 @@ public class GameManager : MonoBehaviour
     public GameObject itemBalls;
     public GameState state = GameState.PLAYING;
 
+    public LevelDifficulty levelDifficulty = LevelDifficulty.ADVANCED;
+
     public List<BallObject> ballList = new List<BallObject>();
     private TubeLayout tubeLayoutComponent;
 
@@ -33,7 +35,7 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         btnStart.onClick.AddListener(OnClickButtonStart);
-        currentLevel = 13;
+        currentLevel = 119;
     }
 
     private void OnClickButtonStart()
@@ -51,8 +53,7 @@ public class GameManager : MonoBehaviour
     {
         // đường dẫn của file leveldata, lưu ý: k cần đuôi .bytes
         string levelDataPath =
-            Path.Combine("LevelData", LevelDifficulty.BEGINNER.ToString().ToLower(),
-                "level_" + currentLevel);
+            Path.Combine("LevelData", levelDifficulty.ToString().ToLower(), "level_" + currentLevel);
         // load file text leveldata
         TextAsset levelDataFile = Resources.Load<TextAsset>(levelDataPath);
         // deserialize file text vừa load
@@ -120,76 +121,50 @@ public class GameManager : MonoBehaviour
 
     public void OnClickTubeObject(TubeObject tube)
     {
-        // Case: click vào tube rỗng/tube full ball cùng màu -> k làm gì
-        if (tube.IsTubeEmpty() && isSelected == false)
-        {
-            Debug.Log("Click lần đầu vào TUBE rỗng");
-            return;
-        }
-
         if (selectedTube == null)
         {
+            if (tube.IsTubeEmpty())
+            {
+                Debug.Log("Click lần đầu vào TUBE rỗng");
+                return;
+            }
+
             selectedTube = tube;
-            isSelected = true;
             Debug.Log("Click vào TUBE đủ điều kiện move BALL");
             // Thực hiện move ball trên cùng của Tube đang chọn lên vị trí posTop của tube đang chọn
             tube.ballObjects[tube.ballObjects.Count - 1].transform
                 .DOMove(tube.posTop.transform.position, 0.15f);
         }
-        // Case: Click vào chính ball đang chọn -> move ball xuống
         else
         {
-            if (selectedTube == tube && isSelected)
+            if (selectedTube == tube || tube.IsTubeFull() || tube.IsTubeDone() ||
+                (!tube.IsTubeEmpty() && tube.GetTopBallType() != selectedTube.GetTopBallType()))
             {
-                Debug.Log("Click vào chính TUBE đang chọn");
                 selectedTube.ballObjects[selectedTube.ballObjects.Count - 1].transform
                     .DOMove(
                         selectedTube.posList[selectedTube.ballObjects.Count - 1].transform
                             .position, 0.15f);
                 selectedTube = null;
-                isSelected = false;
                 Debug.Log("Move Ball về vị trí cũ");
             }
             else
             {
-                TubeObject tube2 = tube;
-                // Debug.Log(tube2);
-                if (tube2.IsTubeFull() == false || tube2.IsTubeEmpty() && tube2.ballObjects[tube2.ballObjects.Count - 1].type != selectedTube
-                        .ballObjects[selectedTube.ballObjects.Count - 1].type)
-                {
-                    Debug.Log("Đủ đkiện nhận ball");
-                    tube2.ballObjects.Add(
-                        selectedTube.ballObjects[selectedTube.ballObjects.Count - 1]);
-                    selectedTube.ballObjects[selectedTube.ballObjects.Count - 1].transform
-                        .DOMove(tube2.posTop.transform.position,
-                            0.15f).OnComplete(() =>
-                        {
-                            tube2.ballObjects[tube2.ballObjects.Count - 1].transform.DOMove(
-                                tube2.posList[tube2.ballObjects.Count - 1].transform.position,
-                                0.15f);
-                        });
-                    selectedTube.ballObjects.Remove(
-                        selectedTube.ballObjects[selectedTube.ballObjects.Count - 1]);
-                    // tube2.ballObjects.Add(selectedTube.ballObjects[selectedTube.ballObjects.Count - 1]);
-                    selectedTube = null;
-                    isSelected = false;
-                }
-                else
-                {
-                    Debug.Log("Không thỏa mãn điều kiện MOVE");
-                    selectedTube = null;
-                    isSelected = false;
-                    return;
-                }
+                Debug.Log("Đủ đkiện nhận ball");
+                tube.ballObjects.Add(
+                    selectedTube.ballObjects[selectedTube.ballObjects.Count - 1]);
+                selectedTube.ballObjects[selectedTube.ballObjects.Count - 1].transform
+                    .DOMove(tube.posTop.transform.position,
+                        0.15f).OnComplete(() =>
+                    {
+                        tube.ballObjects[tube.ballObjects.Count - 1].transform.DOMove(
+                            tube.posList[tube.ballObjects.Count - 1].transform.position,
+                            0.15f);
+                    });
+                selectedTube.ballObjects.Remove(
+                    selectedTube.ballObjects[selectedTube.ballObjects.Count - 1]);
+                // tube.ballObjects.Add(selectedTube.ballObjects[selectedTube.ballObjects.Count - 1]);
+                selectedTube = null;
             }
         }
-
-
-        // Click lại vào tube đang chọn (tube 1): ball đi xuống
-
-        // Click vào tube 2:
-        // Case 1: tube 2 rỗng -> move ball từ tube 1 sang tube 2
-        // Case 2: tube 2 có ball -> Check xem ball trên cùng của tube 2 có cùng màu với ball được chọn k
-        // Nếu cùng màu: check xem tube 2 full chưa, chưa full thì move, full rồi thì k làm gì
     }
 }

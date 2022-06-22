@@ -15,10 +15,6 @@ public class TubeObject : MonoBehaviour, IPointerDownHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if (IsTubeDone())
-        {
-            return;
-        }
         onClickTube?.Invoke(this);
     }
 
@@ -56,6 +52,11 @@ public class TubeObject : MonoBehaviour, IPointerDownHandler
         }
 
         return true;
+    }
+
+    public int GetTopBallType()
+    {
+        return ballObjects[ballObjects.Count - 1].type;
     }
     
 }
