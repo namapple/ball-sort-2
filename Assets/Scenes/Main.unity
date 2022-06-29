@@ -190,7 +190,11 @@ MonoBehaviour:
   btnStart: {fileID: 1476855322}
   tubeRoot: {fileID: 146543559}
   itemBalls: {fileID: 947990765}
-  currentLevel: 0
+  state: 0
+  levelDifficulty: 1
+  ballList: []
+  currentLevel: 61
+  selectedTube: {fileID: 0}
 --- !u!4 &408634138
 Transform:
   m_ObjectHideFlags: 0

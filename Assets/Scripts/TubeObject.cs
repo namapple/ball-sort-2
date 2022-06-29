@@ -1,16 +1,14 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using DG.Tweening;
 
 public class TubeObject : MonoBehaviour, IPointerDownHandler
 {
     public List<GameObject> posList = new List<GameObject>();
-    public GameObject posTop;
+    public GameObject posTop = null;
     public List<BallObject> ballObjects = new List<BallObject>();
-    public Action<TubeObject> onClickTube;
+    public Action<TubeObject> onClickTube = null;
     private int MAX_BALL = 4;
 
     public void OnPointerDown(PointerEventData eventData)

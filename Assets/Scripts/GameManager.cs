@@ -1,5 +1,4 @@
 using System.IO;
-using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -16,26 +15,26 @@ public enum GameState
 
 public class GameManager : MonoBehaviour
 {
-    public Button btnStart;
-    public LevelData levelData;
-    public GameObject tubeRoot;
-    public GameObject itemBalls;
+    public Button btnStart = null;
+
+    // public LevelData levelData = null;
+    public GameObject tubeRoot = null;
+    public GameObject itemBalls = null;
     public GameState state = GameState.PLAYING;
 
     public LevelDifficulty levelDifficulty = LevelDifficulty.ADVANCED;
 
     public List<BallObject> ballList = new List<BallObject>();
-    private TubeLayout tubeLayoutComponent;
+    private TubeLayout tubeLayoutComponent = null;
 
-    public int currentLevel;
+    public int currentLevel = 61;
 
     public TubeObject selectedTube = null;
-    private bool isSelected;
 
     private void Start()
     {
         btnStart.onClick.AddListener(OnClickButtonStart);
-        currentLevel = 119;
+        // currentLevel = 61;
     }
 
     private void OnClickButtonStart()
@@ -53,7 +52,8 @@ public class GameManager : MonoBehaviour
     {
         // đường dẫn của file leveldata, lưu ý: k cần đuôi .bytes
         string levelDataPath =
-            Path.Combine("LevelData", levelDifficulty.ToString().ToLower(), "level_" + currentLevel);
+            Path.Combine("LevelData", levelDifficulty.ToString().ToLower(),
+                "level_" + currentLevel);
         // load file text leveldata
         TextAsset levelDataFile = Resources.Load<TextAsset>(levelDataPath);
         // deserialize file text vừa load
@@ -63,7 +63,13 @@ public class GameManager : MonoBehaviour
 
     private void SetUpTubeLayout()
     {
-        if (tubeLayoutComponent != null) Destroy(tubeLayoutComponent.gameObject);
+        // Xóa tubeLayout cũ khi reset level
+        if (tubeLayoutComponent != null)
+        {
+            Destroy(tubeLayoutComponent.gameObject);
+        }
+
+        // XÓa hết ball cũ khi reset level
         for (int i = 0; i < ballList.Count; i++)
         {
             Destroy(ballList[i].gameObject);
@@ -71,8 +77,8 @@ public class GameManager : MonoBehaviour
 
         ballList.Clear();
         // Đường dẫn của prefab
-        LevelData data = LoadLevelData();
-        string tubeLayoutPath = Path.Combine("Prefabs", "Tubes", "Tube_" + data.numStack);
+        LevelData levelData = LoadLevelData();
+        string tubeLayoutPath = Path.Combine("Prefabs", "Tubes", "Tube_" + levelData.numStack);
         // Load prefab theo đường dẫn
         GameObject tubeLayoutPrefab = Resources.Load<GameObject>(tubeLayoutPath);
 
@@ -88,12 +94,12 @@ public class GameManager : MonoBehaviour
         }
 
         // chạy loop đổ bóng vào các tube theo tubeIndex và ballIndex
-        for (int i = 0; i < data.bubbleTypes.Count; i++)
+        for (int i = 0; i < levelData.bubbleTypes.Count; i++)
         {
             int tubeIndex = i / 4;
             int ballIndex = i % 4;
 
-            string ballPath = Path.Combine("Prefabs", "Balls", "Ball" + data.bubbleTypes[i]);
+            string ballPath = Path.Combine("Prefabs", "Balls", "Ball" + levelData.bubbleTypes[i]);
             GameObject ballPrefab = Resources.Load<GameObject>(ballPath);
 
 
@@ -102,7 +108,7 @@ public class GameManager : MonoBehaviour
 
             // Lấy component BallOject để add vào 1 list dùng để quản lý
             BallObject ballObjectComponent = ballObject.GetComponent<BallObject>();
-            ballObjectComponent.type = data.bubbleTypes[i];
+            ballObjectComponent.type = levelData.bubbleTypes[i];
             // Add hết các ball đã tạo ra vào 1 list
             ballList.Add(ballObjectComponent);
 
@@ -112,8 +118,17 @@ public class GameManager : MonoBehaviour
             //Đặt ballobject vào vị trí các pos trong postList
             ballObject.transform.position =
                 tubeLayoutComponent.tubeList[tubeIndex].posList[ballIndex].transform.position;
-            ballObject.transform.localScale =
-                tubeLayoutComponent.tubeList[tubeIndex].posList[ballIndex].transform.localScale;
+            if (levelData.numStack > 8)
+            {
+                ballObject.transform.localScale = new Vector3(0.7f, 0.7f,
+                    tubeLayoutComponent.tubeList[tubeIndex].posList[ballIndex].transform.localScale.z);
+            }
+            else
+            {
+                ballObject.transform.localScale = tubeLayoutComponent.tubeList[tubeIndex]
+                    .posList[ballIndex].transform.localScale;
+            }
+
             ballObject.transform.rotation =
                 tubeLayoutComponent.tubeList[tubeIndex].posList[ballIndex].transform.rotation;
         }

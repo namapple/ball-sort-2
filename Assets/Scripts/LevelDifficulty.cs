@@ -2,7 +2,7 @@
 {
     BEGINNER,
     ADVANCED,
-    EXPERT,
     MASTER,
+    EXPERT,
     GENIUS
 }
