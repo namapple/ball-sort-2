@@ -27,7 +27,7 @@ public class GameManager : MonoBehaviour
     public List<BallObject> ballList = new List<BallObject>();
     private TubeLayout tubeLayoutComponent = null;
 
-    public int currentLevel = 61;
+    public int currentLevel = 50;
 
     public TubeObject selectedTube = null;
 
