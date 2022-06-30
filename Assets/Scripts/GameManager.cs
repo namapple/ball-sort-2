@@ -7,7 +7,7 @@ using DG.Tweening;
 
 public class GameManager : MonoBehaviour
 {
-    public Button btnStart = null, btnUndo = null, btnAddTube = null;
+    public Button btnStart = null, btnUndo = null, btnAddTube = null, btnRandomLevel = null;
     public GameObject tubeRoot = null;
     public GameObject itemBalls = null;
     public GameState gameState = GameState.PLAYING;
@@ -23,6 +23,7 @@ public class GameManager : MonoBehaviour
         btnStart.onClick.AddListener(OnClickButtonStart);
         btnUndo.onClick.AddListener(OnClickBtnUndo);
         btnAddTube.onClick.AddListener(OnClickBtnAddTube);
+        btnRandomLevel.onClick.AddListener(OnClickBtnRandom);
     }
 
     private void OnClickButtonStart()
@@ -56,7 +57,7 @@ public class GameManager : MonoBehaviour
         {
             Destroy(tubeLayoutComponent.gameObject);
         }
-
+      
         // XÓa hết ball cũ khi reset level
         for (int i = 0; i < ballList.Count; i++)
         {
@@ -212,13 +213,6 @@ public class GameManager : MonoBehaviour
 
     public void OnClickBtnAddTube()
     {
-        LevelData levelData = LoadLevelData();
-        string tubeLayoutPath = Path.Combine("Prefabs", "Tubes", "Tube_" + (levelData.numStack + 1));
-        GameObject tubeLayoutPrefab = Resources.Load<GameObject>(tubeLayoutPath);
-
-        GameObject tubeLayoutObj = Instantiate(tubeLayoutPrefab, tubeRoot.transform, false);
-        TubeLayout newTubeLayout = tubeLayoutObj.GetComponent<TubeLayout>();
-        
         
     }
 
@@ -234,6 +228,13 @@ public class GameManager : MonoBehaviour
         }
 
         return gameWon;
+    }
+
+    public void OnClickBtnRandom()
+    {
+        levelDifficulty = (LevelDifficulty) Random.Range(0, 3);
+        currentLevel = Random.Range(0, 121);
+        Init();
     }
 }
 
