@@ -5,11 +5,12 @@ using UnityEngine.EventSystems;
 
 public class TubeObject : MonoBehaviour, IPointerDownHandler
 {
+    public int id = 0;
     public List<GameObject> posList = new List<GameObject>();
     public GameObject posTop = null;
     public List<BallObject> ballObjects = new List<BallObject>();
     public Action<TubeObject> onClickTube = null;
-    private int MAX_BALL = 4;
+    public int MAX_BALL = 4;
 
     public void OnPointerDown(PointerEventData eventData)
     {
@@ -36,7 +37,7 @@ public class TubeObject : MonoBehaviour, IPointerDownHandler
         return true;
     }
 
-    public bool IsTubeDone()
+    public bool IsTubeResolved()
     {
         if (ballObjects.Count != MAX_BALL)
         {
@@ -55,6 +56,11 @@ public class TubeObject : MonoBehaviour, IPointerDownHandler
     public int GetTopBallType()
     {
         return ballObjects[ballObjects.Count - 1].type;
+    }
+
+    public int GetIndexFree()
+    {
+        return ballObjects.Count;
     }
 
     // public bool IsTubeResolved()
