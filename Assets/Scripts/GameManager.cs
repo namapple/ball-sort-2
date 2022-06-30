@@ -5,36 +5,21 @@ using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
 
-public enum GameState
-{
-    PLAYING,
-    MOVING,
-    WIN,
-    LOSE
-}
-
 public class GameManager : MonoBehaviour
 {
     public Button btnStart = null;
-
-    // public LevelData levelData = null;
     public GameObject tubeRoot = null;
     public GameObject itemBalls = null;
-    public GameState state = GameState.PLAYING;
-
+    public GameState gameState = GameState.PLAYING;
     public LevelDifficulty levelDifficulty = LevelDifficulty.ADVANCED;
-
-    public List<BallObject> ballList = new List<BallObject>();
     private TubeLayout tubeLayoutComponent = null;
-
     public int currentLevel = 50;
-
     public TubeObject selectedTube = null;
+    public List<BallObject> ballList = new List<BallObject>();
 
     private void Start()
     {
         btnStart.onClick.AddListener(OnClickButtonStart);
-        // currentLevel = 61;
     }
 
     private void OnClickButtonStart()
@@ -182,4 +167,33 @@ public class GameManager : MonoBehaviour
             }
         }
     }
+
+    public void Undo()
+    {
+        Debug.Log("Undo Move");
+    }
+
+    public bool CheckGameWin()
+    {
+        bool gameWon = false;
+        foreach (TubeObject tube in tubeLayoutComponent.tubeList)
+        {
+            if (tube.IsTubeDone() || tube.IsTubeEmpty())
+            {
+                gameWon = true;
+            }
+        }
+
+        return gameWon;
+    }
+}
+
+
+
+public enum GameState
+{
+    PLAYING,
+    MOVING,
+    WIN,
+    LOSE
 }

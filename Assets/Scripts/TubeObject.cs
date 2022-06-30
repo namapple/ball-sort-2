@@ -56,5 +56,22 @@ public class TubeObject : MonoBehaviour, IPointerDownHandler
     {
         return ballObjects[ballObjects.Count - 1].type;
     }
-    
+
+    // public bool IsTubeResolved()
+    // {
+    //     if (ballObjects.Count < MAX_BALL)
+    //     {
+    //         return false;
+    //     }
+    //
+    //     for (int i = 1; i < ballObjects.Count; i++)
+    //     {
+    //         if (ballObjects[i].type != ballObjects[0].type)
+    //         {
+    //             return false;
+    //         }
+    //     }
+    //     
+    //     return true;
+    // }
 }
