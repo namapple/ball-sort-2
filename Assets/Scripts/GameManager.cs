@@ -7,7 +7,7 @@ using DG.Tweening;
 
 public class GameManager : MonoBehaviour
 {
-    public Button btnStart = null;
+    public Button btnStart = null, btnUndo = null, btnAddTube = null;
     public GameObject tubeRoot = null;
     public GameObject itemBalls = null;
     public GameState gameState = GameState.PLAYING;
@@ -16,10 +16,13 @@ public class GameManager : MonoBehaviour
     public int currentLevel = 50;
     public TubeObject selectedTube = null;
     public List<BallObject> ballList = new List<BallObject>();
+    public List<StepMove> listStepMoved = new List<StepMove>();
 
     private void Start()
     {
         btnStart.onClick.AddListener(OnClickButtonStart);
+        btnUndo.onClick.AddListener(OnClickBtnUndo);
+        btnAddTube.onClick.AddListener(OnClickBtnAddTube);
     }
 
     private void OnClickButtonStart()
@@ -137,7 +140,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            if (selectedTube == tube || tube.IsTubeFull() || tube.IsTubeDone() ||
+            if (selectedTube == tube || tube.IsTubeFull() || tube.IsTubeResolved() ||
                 (!tube.IsTubeEmpty() && tube.GetTopBallType() != selectedTube.GetTopBallType()))
             {
                 selectedTube.ballObjects[selectedTube.ballObjects.Count - 1].transform
@@ -168,9 +171,55 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void Undo()
+    public void OnClickBtnUndo()
     {
-        Debug.Log("Undo Move");
+        Debug.Log("Click btn UNDO");
+        Debug.Log(tubeLayoutComponent);
+        if (listStepMoved.Count == 0)
+        {
+            Debug.Log("No moves");
+            return;
+        }
+        StepMove st = listStepMoved[listStepMoved.Count - 1];
+        Debug.Log(st);
+        TubeObject tubeA = tubeLayoutComponent.tubeList[st.tubeA];
+        TubeObject tubeB = tubeLayoutComponent.tubeList[st.tubeB];
+
+        Debug.Log("tubeA : " + tubeA);
+        Debug.Log("tubeB : " + tubeB);
+
+        listStepMoved.Remove(st);
+
+        BallObject ball = tubeB.ballObjects[tubeB.ballObjects.Count - 1];
+        tubeB.ballObjects.Remove(ball);
+
+        int tubeAFreeIndex = tubeA.GetIndexFree();
+
+        if (tubeAFreeIndex == tubeA.MAX_BALL)
+        {
+            return;
+        }
+
+        ball.transform.DOMove(tubeB.posTop.transform.position, 0.15f).OnComplete(() =>
+        {
+            tubeA.ballObjects.Add(ball);
+            ball.transform.DOMove(tubeA.posTop.transform.position, 0.15f).OnComplete(() =>
+            {
+                ball.transform.DOMove(tubeA.posList[tubeAFreeIndex].transform.position, 0.15f);
+            });
+        });
+    }
+
+    public void OnClickBtnAddTube()
+    {
+        LevelData levelData = LoadLevelData();
+        string tubeLayoutPath = Path.Combine("Prefabs", "Tubes", "Tube_" + (levelData.numStack + 1));
+        GameObject tubeLayoutPrefab = Resources.Load<GameObject>(tubeLayoutPath);
+
+        GameObject tubeLayoutObj = Instantiate(tubeLayoutPrefab, tubeRoot.transform, false);
+        TubeLayout newTubeLayout = tubeLayoutObj.GetComponent<TubeLayout>();
+        
+        
     }
 
     public bool CheckGameWin()
@@ -178,7 +227,7 @@ public class GameManager : MonoBehaviour
         bool gameWon = false;
         foreach (TubeObject tube in tubeLayoutComponent.tubeList)
         {
-            if (tube.IsTubeDone() || tube.IsTubeEmpty())
+            if (tube.IsTubeResolved() || tube.IsTubeEmpty())
             {
                 gameWon = true;
             }
@@ -196,4 +245,16 @@ public enum GameState
     MOVING,
     WIN,
     LOSE
+}
+
+public class StepMove
+{
+    public int tubeA = -1;
+    public int tubeB = -1;
+
+    public StepMove(int tubeA, int tubeB)
+    {
+        this.tubeA = tubeA;
+        this.tubeB = tubeB;
+    }
 }

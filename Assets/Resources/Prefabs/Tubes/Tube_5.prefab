@@ -181,6 +181,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2944456139301589049, guid: e7321799fe398874b91fe7004124d17e, type: 3}
+      propertyPath: id
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 3604728693214236609, guid: e7321799fe398874b91fe7004124d17e, type: 3}
       propertyPath: m_Name
       value: Tube
@@ -294,6 +298,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2944456139301589049, guid: e7321799fe398874b91fe7004124d17e, type: 3}
+      propertyPath: id
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3604728693214236609, guid: e7321799fe398874b91fe7004124d17e, type: 3}
       propertyPath: m_Name
       value: Tube
@@ -405,6 +413,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1717411663908465394, guid: e7321799fe398874b91fe7004124d17e, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2944456139301589049, guid: e7321799fe398874b91fe7004124d17e, type: 3}
+      propertyPath: id
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3604728693214236609, guid: e7321799fe398874b91fe7004124d17e, type: 3}
@@ -520,6 +532,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2944456139301589049, guid: e7321799fe398874b91fe7004124d17e, type: 3}
+      propertyPath: id
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 3604728693214236609, guid: e7321799fe398874b91fe7004124d17e, type: 3}
       propertyPath: m_Name
       value: Tube
@@ -632,6 +648,10 @@ PrefabInstance:
     - target: {fileID: 1717411663908465394, guid: e7321799fe398874b91fe7004124d17e, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2944456139301589049, guid: e7321799fe398874b91fe7004124d17e, type: 3}
+      propertyPath: id
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 3604728693214236609, guid: e7321799fe398874b91fe7004124d17e, type: 3}
       propertyPath: m_Name
