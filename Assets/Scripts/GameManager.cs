@@ -13,6 +13,8 @@ public class GameManager : MonoBehaviour
     public GameState gameState = GameState.PLAYING;
     public LevelDifficulty levelDifficulty = LevelDifficulty.ADVANCED;
     private TubeLayout tubeLayoutComponent = null;
+    private TubeLayout newTubeLayout = null;
+    public LevelData levelData = new LevelData();
     public int currentLevel = 50;
     public TubeObject selectedTube = null;
     public List<BallObject> ballList = new List<BallObject>();
@@ -46,8 +48,8 @@ public class GameManager : MonoBehaviour
         // load file text leveldata
         TextAsset levelDataFile = Resources.Load<TextAsset>(levelDataPath);
         // deserialize file text vừa load
-        LevelData result = JsonConvert.DeserializeObject<LevelData>(levelDataFile.ToString());
-        return result;
+        levelData = JsonConvert.DeserializeObject<LevelData>(levelDataFile.ToString());
+        return levelData;
     }
 
     private void SetUpTubeLayout()
@@ -66,7 +68,7 @@ public class GameManager : MonoBehaviour
 
         ballList.Clear();
         // Đường dẫn của prefab
-        LevelData levelData = LoadLevelData();
+        // LevelData levelData = LoadLevelData();
         string tubeLayoutPath = Path.Combine("Prefabs", "Tubes", "Tube_" + levelData.numStack);
         // Load prefab theo đường dẫn
         GameObject tubeLayoutPrefab = Resources.Load<GameObject>(tubeLayoutPath);
@@ -157,12 +159,10 @@ public class GameManager : MonoBehaviour
                 tube.ballObjects.Add(
                     selectedTube.ballObjects[selectedTube.ballObjects.Count - 1]);
                 selectedTube.ballObjects[selectedTube.ballObjects.Count - 1].transform
-                    .DOMove(tube.posTop.transform.position,
-                        0.15f).OnComplete(() =>
+                    .DOMove(tube.posTop.transform.position, 0.15f).OnComplete(() =>
                     {
-                        tube.ballObjects[tube.ballObjects.Count - 1].transform.DOMove(
-                            tube.posList[tube.ballObjects.Count - 1].transform.position,
-                            0.15f);
+                        tube.ballObjects[tube.ballObjects.Count - 1].transform
+                            .DOMove(tube.posList[tube.ballObjects.Count - 1].transform.position, 0.15f);
                     });
                 selectedTube.ballObjects.Remove(
                     selectedTube.ballObjects[selectedTube.ballObjects.Count - 1]);
@@ -213,7 +213,77 @@ public class GameManager : MonoBehaviour
 
     public void OnClickBtnAddTube()
     {
+        tubeLayoutComponent.gameObject.SetActive(false);
+        // if (tubeLayoutComponent != null)
+        // {
+        //     Destroy(tubeLayoutComponent.gameObject);
+        // }
+        if (newTubeLayout != null)
+        {
+            Destroy(newTubeLayout.gameObject);
+        }
         
+        string tubeLayoutPath = Path.Combine("Prefabs", "Tubes", "Tube_" + (levelData.numStack + 1));
+        GameObject tubeLayoutPrefab = Resources.Load<GameObject>(tubeLayoutPath);
+
+        GameObject tubeLayoutObj = Instantiate(tubeLayoutPrefab, tubeRoot.transform, false);
+        newTubeLayout = tubeLayoutObj.GetComponent<TubeLayout>();
+
+        for (int i = 0; i < newTubeLayout.tubeList.Count; i++)
+        {
+            newTubeLayout.tubeList[i].onClickTube += OnClickTubeObject;
+        }
+        
+        for (int i = 0; i < levelData.bubbleTypes.Count; i++)
+        {
+            int tubeIndex = i / 4;
+            int ballIndex = i % 4;
+
+            string ballPath = Path.Combine("Prefabs", "Balls", "Ball" + levelData.bubbleTypes[i]);
+            GameObject ballPrefab = Resources.Load<GameObject>(ballPath);
+
+
+            GameObject ballObject = Instantiate(ballPrefab,
+                itemBalls.transform, false);
+
+            // Lấy component BallOject để add vào 1 list dùng để quản lý
+            BallObject ballObjectComponent = ballObject.GetComponent<BallObject>();
+            ballObjectComponent.type = levelData.bubbleTypes[i];
+            // Add hết các ball đã tạo ra vào 1 list
+            ballList.Add(ballObjectComponent);
+
+            //Add ball vào từng tube theo tubeIndex
+            newTubeLayout.tubeList[tubeIndex].ballObjects.Add(ballObjectComponent);
+
+            //Đặt ballobject vào vị trí các pos trong postList
+            ballObject.transform.position =
+                newTubeLayout.tubeList[tubeIndex].posList[ballIndex].transform.position;
+            if (levelData.numStack > 8)
+            {
+                ballObject.transform.localScale = new Vector3(0.7f, 0.7f,
+                    newTubeLayout.tubeList[tubeIndex].posList[ballIndex].transform.localScale.z);
+            }
+            else
+            {
+                ballObject.transform.localScale = newTubeLayout.tubeList[tubeIndex]
+                    .posList[ballIndex].transform.localScale;
+            }
+
+            ballObject.transform.rotation =
+                newTubeLayout.tubeList[tubeIndex].posList[ballIndex].transform.rotation;
+        }
+
+        for (int i = 0; i < tubeLayoutComponent.tubeList.Count; i++)
+        {
+            TubeObject tube = tubeLayoutComponent.tubeList[i];
+            TubeObject tubeNew = newTubeLayout.tubeList[i];
+
+            for (int j = 0; i < tube.ballObjects.Count; j++)
+            {
+                BallObject ball = tube.ballObjects[j];
+                
+            }
+        }
     }
 
     public bool CheckGameWin()
@@ -232,8 +302,8 @@ public class GameManager : MonoBehaviour
 
     public void OnClickBtnRandom()
     {
-        levelDifficulty = (LevelDifficulty) Random.Range(0, 3);
-        currentLevel = Random.Range(0, 121);
+        levelDifficulty = (LevelDifficulty) Random.Range(0, 3); // K bao gồm expert và genius
+        currentLevel = Random.Range(1, 121);
         Init();
     }
 }
