@@ -214,6 +214,7 @@ public class GameManager : MonoBehaviour
     public void OnClickBtnAddTube()
     {
         tubeLayoutComponent.gameObject.SetActive(false);
+        itemBalls.SetActive(false);
         // if (tubeLayoutComponent != null)
         // {
         //     Destroy(tubeLayoutComponent.gameObject);
@@ -241,12 +242,11 @@ public class GameManager : MonoBehaviour
 
             string ballPath = Path.Combine("Prefabs", "Balls", "Ball" + levelData.bubbleTypes[i]);
             GameObject ballPrefab = Resources.Load<GameObject>(ballPath);
-
-
+            
             GameObject ballObject = Instantiate(ballPrefab,
                 itemBalls.transform, false);
 
-            // Lấy component BallOject để add vào 1 list dùng để quản lý
+            // Lấy component BallObject để add vào 1 list dùng để quản lý
             BallObject ballObjectComponent = ballObject.GetComponent<BallObject>();
             ballObjectComponent.type = levelData.bubbleTypes[i];
             // Add hết các ball đã tạo ra vào 1 list
@@ -271,13 +271,15 @@ public class GameManager : MonoBehaviour
 
             ballObject.transform.rotation =
                 newTubeLayout.tubeList[tubeIndex].posList[ballIndex].transform.rotation;
+            
+            
         }
 
         for (int i = 0; i < tubeLayoutComponent.tubeList.Count; i++)
         {
             TubeObject tube = tubeLayoutComponent.tubeList[i];
             TubeObject tubeNew = newTubeLayout.tubeList[i];
-
+        
             for (int j = 0; i < tube.ballObjects.Count; j++)
             {
                 BallObject ball = tube.ballObjects[j];
