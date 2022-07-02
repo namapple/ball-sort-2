@@ -7,22 +7,23 @@ using DG.Tweening;
 
 public class GameManager : MonoBehaviour
 {
-    public Button btnStart = null, btnUndo = null, btnAddTube = null, btnRandomLevel = null;
+    public Button btnStart = null, btnUndo = null, btnAddTube = null, btnRandomLevel = null, btnReset = null;
     public GameObject tubeRoot = null;
     public GameObject itemBalls = null;
     public GameState gameState = GameState.PLAYING;
     public LevelDifficulty levelDifficulty = LevelDifficulty.ADVANCED;
     private TubeLayout tubeLayoutComponent = null;
-    private TubeLayout newTubeLayout = null;
     public LevelData levelData = new LevelData();
     public int currentLevel = 50;
+    public int undoLimit = 5;
     public TubeObject selectedTube = null;
     public List<BallObject> ballList = new List<BallObject>();
     public List<StepMove> listStepMoved = new List<StepMove>();
 
     private void Start()
     {
-        btnStart.onClick.AddListener(OnClickButtonStart);
+        btnReset.onClick.AddListener(OnClickBtnReset);
+        // btnStart.onClick.AddListener(OnClickButtonStart);
         btnUndo.onClick.AddListener(OnClickBtnUndo);
         btnAddTube.onClick.AddListener(OnClickBtnAddTube);
         btnRandomLevel.onClick.AddListener(OnClickBtnRandom);
@@ -82,47 +83,11 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < tubeLayoutComponent.tubeList.Count; i++)
         {
             tubeLayoutComponent.tubeList[i].onClickTube += OnClickTubeObject;
+            tubeLayoutComponent.tubeList[i].id = i;
         }
-
+        
         // chạy loop đổ bóng vào các tube theo tubeIndex và ballIndex
-        for (int i = 0; i < levelData.bubbleTypes.Count; i++)
-        {
-            int tubeIndex = i / 4;
-            int ballIndex = i % 4;
-
-            string ballPath = Path.Combine("Prefabs", "Balls", "Ball" + levelData.bubbleTypes[i]);
-            GameObject ballPrefab = Resources.Load<GameObject>(ballPath);
-
-
-            GameObject ballObject = Instantiate(ballPrefab,
-                itemBalls.transform, false);
-
-            // Lấy component BallOject để add vào 1 list dùng để quản lý
-            BallObject ballObjectComponent = ballObject.GetComponent<BallObject>();
-            ballObjectComponent.type = levelData.bubbleTypes[i];
-            // Add hết các ball đã tạo ra vào 1 list
-            ballList.Add(ballObjectComponent);
-
-            //Add ball vào từng tube theo tubeIndex
-            tubeLayoutComponent.tubeList[tubeIndex].ballObjects.Add(ballObjectComponent);
-
-            //Đặt ballobject vào vị trí các pos trong postList
-            ballObject.transform.position =
-                tubeLayoutComponent.tubeList[tubeIndex].posList[ballIndex].transform.position;
-            if (levelData.numStack > 8)
-            {
-                ballObject.transform.localScale = new Vector3(0.7f, 0.7f,
-                    tubeLayoutComponent.tubeList[tubeIndex].posList[ballIndex].transform.localScale.z);
-            }
-            else
-            {
-                ballObject.transform.localScale = tubeLayoutComponent.tubeList[tubeIndex]
-                    .posList[ballIndex].transform.localScale;
-            }
-
-            ballObject.transform.rotation =
-                tubeLayoutComponent.tubeList[tubeIndex].posList[ballIndex].transform.rotation;
-        }
+        FillBall();
     }
 
     public void OnClickTubeObject(TubeObject tube)
@@ -162,144 +127,149 @@ public class GameManager : MonoBehaviour
                     .DOMove(tube.posTop.transform.position, 0.15f).OnComplete(() =>
                     {
                         tube.ballObjects[tube.ballObjects.Count - 1].transform
-                            .DOMove(tube.posList[tube.ballObjects.Count - 1].transform.position, 0.15f);
+                            .DOMove(tube.posList[tube.ballObjects.Count - 1].transform.position, 0.15f).OnComplete(
+                                () =>
+                                {
+                                    if (tube.IsTubeResolved())
+                                    {
+                                        Debug.Log("TUBE is resolved");
+                                    }
+
+                                    if (CheckGameWin())
+                                    {
+                                        Debug.Log("WIN!!!");
+                                    }
+                                });
                     });
                 selectedTube.ballObjects.Remove(
                     selectedTube.ballObjects[selectedTube.ballObjects.Count - 1]);
-                // tube.ballObjects.Add(selectedTube.ballObjects[selectedTube.ballObjects.Count - 1]);
+                // Gán id của 2 tube vào StepMove
+                listStepMoved.Add(new StepMove(selectedTube.id, tube.id));
                 selectedTube = null;
             }
         }
     }
 
+    public void DoUndoMove()
+    {
+        StepMove step = listStepMoved[listStepMoved.Count - 1];
+        TubeObject tubeA = tubeLayoutComponent.tubeList[step.tubeA];
+        TubeObject tubeB = tubeLayoutComponent.tubeList[step.tubeB];
+        
+        gameState = GameState.MOVING;
+
+        Debug.Log("Moving DoMOVE 0");
+        tubeB.ballObjects[tubeB.ballObjects.Count - 1].transform
+            .DOMove(tubeB.posTop.transform.position, 0.15f).OnComplete(() =>
+            {
+                Debug.Log("Moving DoMOVE 1");
+                tubeB.ballObjects[tubeB.ballObjects.Count - 1].transform
+                    .DOMove(tubeA.posTop.transform.position, 0.15f).OnComplete(() =>
+                    {
+                        Debug.Log("OnComplete -- DoMOVE 1");
+                        tubeA.ballObjects.Add(
+                            tubeB.ballObjects[tubeB.ballObjects.Count - 1]);
+                        
+                        tubeB.ballObjects.Remove(
+                            tubeB.ballObjects[tubeB.ballObjects.Count - 1]);
+                        
+                        Debug.Log("Moving DoMOVE 2");
+                        tubeA.ballObjects[tubeA.ballObjects.Count - 1].transform
+                            .DOMove(tubeA.posList[tubeA.ballObjects.Count - 1].transform.position, 0.15f).OnComplete(
+                                () =>
+                                {
+                                    Debug.Log("OnComplete -- DoMOVE 2");
+                                    gameState = GameState.PLAYING;
+                                    listStepMoved.Remove(step);
+                                });
+                    });
+            });
+
+        Debug.Log("Undo Done!!");
+    }
+
     public void OnClickBtnUndo()
     {
         Debug.Log("Click btn UNDO");
-        Debug.Log(tubeLayoutComponent);
+
+        if (gameState != GameState.PLAYING)
+        {
+            return;
+        }
+
         if (listStepMoved.Count == 0)
         {
-            Debug.Log("No moves");
             return;
         }
-        StepMove st = listStepMoved[listStepMoved.Count - 1];
-        Debug.Log(st);
-        TubeObject tubeA = tubeLayoutComponent.tubeList[st.tubeA];
-        TubeObject tubeB = tubeLayoutComponent.tubeList[st.tubeB];
-
-        Debug.Log("tubeA : " + tubeA);
-        Debug.Log("tubeB : " + tubeB);
-
-        listStepMoved.Remove(st);
-
-        BallObject ball = tubeB.ballObjects[tubeB.ballObjects.Count - 1];
-        tubeB.ballObjects.Remove(ball);
-
-        int tubeAFreeIndex = tubeA.GetIndexFree();
-
-        if (tubeAFreeIndex == tubeA.MAX_BALL)
+        if (selectedTube != null)
         {
-            return;
+            gameState = GameState.MOVING;
+            Debug.Log("DOMove step 0");
+            selectedTube.ballObjects[selectedTube.ballObjects.Count - 1].transform
+                .DOMove(
+                    selectedTube.posList[selectedTube.ballObjects.Count - 1].transform
+                        .position, 0.15f).OnComplete(() =>
+                {
+                    Debug.Log("DOMove step 1");
+                    // gameState = GameState.PLAYING;
+                    selectedTube = null;
+
+                    DoUndoMove();
+                });
+            Debug.Log("DOMove step 2");
+
         }
-
-        ball.transform.DOMove(tubeB.posTop.transform.position, 0.15f).OnComplete(() =>
+        else
         {
-            tubeA.ballObjects.Add(ball);
-            ball.transform.DOMove(tubeA.posTop.transform.position, 0.15f).OnComplete(() =>
-            {
-                ball.transform.DOMove(tubeA.posList[tubeAFreeIndex].transform.position, 0.15f);
-            });
-        });
+            DoUndoMove();
+        }
     }
 
     public void OnClickBtnAddTube()
     {
-        tubeLayoutComponent.gameObject.SetActive(false);
-        itemBalls.SetActive(false);
-        // if (tubeLayoutComponent != null)
-        // {
-        //     Destroy(tubeLayoutComponent.gameObject);
-        // }
-        if (newTubeLayout != null)
-        {
-            Destroy(newTubeLayout.gameObject);
-        }
-        
         string tubeLayoutPath = Path.Combine("Prefabs", "Tubes", "Tube_" + (levelData.numStack + 1));
         GameObject tubeLayoutPrefab = Resources.Load<GameObject>(tubeLayoutPath);
 
         GameObject tubeLayoutObj = Instantiate(tubeLayoutPrefab, tubeRoot.transform, false);
-        newTubeLayout = tubeLayoutObj.GetComponent<TubeLayout>();
+        TubeLayout newTubeLayout = tubeLayoutObj.GetComponent<TubeLayout>();
 
         for (int i = 0; i < newTubeLayout.tubeList.Count; i++)
         {
             newTubeLayout.tubeList[i].onClickTube += OnClickTubeObject;
         }
-        
-        for (int i = 0; i < levelData.bubbleTypes.Count; i++)
+
+        for (int tubeIndex = 0; tubeIndex < tubeLayoutComponent.tubeList.Count; tubeIndex++)
         {
-            int tubeIndex = i / 4;
-            int ballIndex = i % 4;
-
-            string ballPath = Path.Combine("Prefabs", "Balls", "Ball" + levelData.bubbleTypes[i]);
-            GameObject ballPrefab = Resources.Load<GameObject>(ballPath);
-            
-            GameObject ballObject = Instantiate(ballPrefab,
-                itemBalls.transform, false);
-
-            // Lấy component BallObject để add vào 1 list dùng để quản lý
-            BallObject ballObjectComponent = ballObject.GetComponent<BallObject>();
-            ballObjectComponent.type = levelData.bubbleTypes[i];
-            // Add hết các ball đã tạo ra vào 1 list
-            ballList.Add(ballObjectComponent);
-
-            //Add ball vào từng tube theo tubeIndex
-            newTubeLayout.tubeList[tubeIndex].ballObjects.Add(ballObjectComponent);
-
-            //Đặt ballobject vào vị trí các pos trong postList
-            ballObject.transform.position =
-                newTubeLayout.tubeList[tubeIndex].posList[ballIndex].transform.position;
-            if (levelData.numStack > 8)
+            // Gán list ball cũ cho list ball mới
+            newTubeLayout.tubeList[tubeIndex].ballObjects = tubeLayoutComponent.tubeList[tubeIndex].ballObjects;
+            for (int ballIndex= 0; ballIndex < newTubeLayout.tubeList[tubeIndex].ballObjects.Count; ballIndex++)
             {
-                ballObject.transform.localScale = new Vector3(0.7f, 0.7f,
-                    newTubeLayout.tubeList[tubeIndex].posList[ballIndex].transform.localScale.z);
-            }
-            else
-            {
-                ballObject.transform.localScale = newTubeLayout.tubeList[tubeIndex]
-                    .posList[ballIndex].transform.localScale;
-            }
-
-            ballObject.transform.rotation =
-                newTubeLayout.tubeList[tubeIndex].posList[ballIndex].transform.rotation;
-            
-            
-        }
-
-        for (int i = 0; i < tubeLayoutComponent.tubeList.Count; i++)
-        {
-            TubeObject tube = tubeLayoutComponent.tubeList[i];
-            TubeObject tubeNew = newTubeLayout.tubeList[i];
-        
-            for (int j = 0; i < tube.ballObjects.Count; j++)
-            {
-                BallObject ball = tube.ballObjects[j];
-                
+                BallObject ballObject = newTubeLayout.tubeList[tubeIndex].ballObjects[ballIndex];
+                //Đặt ballobject vào vị trí các pos trong postList
+                ballObject.transform.position =
+                    newTubeLayout.tubeList[tubeIndex].posList[ballIndex].transform.position;
+                ballObject.transform.localScale = newTubeLayout.GetTubeScale();
+                ballObject.transform.rotation =
+                    newTubeLayout.tubeList[tubeIndex].posList[ballIndex].transform.rotation;
             }
         }
+       // Xóa tubeLayout cũ đi vì đã thêm 1 tube mới
+        Destroy(tubeLayoutComponent.gameObject);
+        // Gán lại tubeLayout mới
+        tubeLayoutComponent = newTubeLayout;
     }
 
     public bool CheckGameWin()
     {
-        bool gameWon = false;
         foreach (TubeObject tube in tubeLayoutComponent.tubeList)
         {
-            if (tube.IsTubeResolved() || tube.IsTubeEmpty())
+            if (!tube.IsTubeResolved() && !tube.IsTubeEmpty())
             {
-                gameWon = true;
+                return false;
             }
         }
 
-        return gameWon;
+        return true;
     }
 
     public void OnClickBtnRandom()
@@ -308,16 +278,64 @@ public class GameManager : MonoBehaviour
         currentLevel = Random.Range(1, 121);
         Init();
     }
+
+
+    public void OnClickBtnReset()
+    {
+        // Xóa hết balls có trong ballList để thêm ball mới
+        for (int i = 0; i < ballList.Count; i++)
+        {
+            Destroy(ballList[i].gameObject);
+        }
+        ballList.Clear();
+
+        // Xóa hết ball object đã thêm vào từng tube trong tubeList để thêm mới
+        for (int i = 0; i < tubeLayoutComponent.tubeList.Count; i++)
+        {
+            tubeLayoutComponent.tubeList[i].ballObjects.Clear();
+        }
+        FillBall();
+    }
+
+    public void FillBall()
+    {
+        for (int i = 0; i < levelData.bubbleTypes.Count; i++)
+        {
+            int tubeIndex = i / 4;
+            int ballIndex = i % 4;
+
+            string ballPath = Path.Combine("Prefabs", "Balls", "Ball" + levelData.bubbleTypes[i]);
+            GameObject ballPrefab = Resources.Load<GameObject>(ballPath);
+
+
+            GameObject ballObject = Instantiate(ballPrefab,
+                itemBalls.transform, false);
+
+            // Lấy component BallOject để add vào 1 list dùng để quản lý
+            BallObject ballObjectComponent = ballObject.GetComponent<BallObject>();
+            ballObjectComponent.type = levelData.bubbleTypes[i];
+            // Add hết các ball đã tạo ra vào 1 list
+            ballList.Add(ballObjectComponent);
+
+            //Add ball vào từng tube theo tubeIndex
+            tubeLayoutComponent.tubeList[tubeIndex].ballObjects.Add(ballObjectComponent);
+
+            //Đặt ballobject vào vị trí các pos trong postList
+            ballObject.transform.position =
+                tubeLayoutComponent.tubeList[tubeIndex].posList[ballIndex].transform.position;
+            ballObject.transform.localScale = tubeLayoutComponent.GetTubeScale();
+
+            ballObject.transform.rotation =
+                tubeLayoutComponent.tubeList[tubeIndex].posList[ballIndex].transform.rotation;
+        }
+    }
 }
-
-
 
 public enum GameState
 {
     PLAYING,
     MOVING,
     WIN,
-    LOSE
 }
 
 public class StepMove

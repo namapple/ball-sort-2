@@ -55,6 +55,7 @@ MonoBehaviour:
   - {fileID: 4895371534284034194}
   - {fileID: 2524081795506917462}
   - {fileID: 5856889008111878462}
+  rootTubes: {fileID: 8598538605365328984}
 --- !u!1 &8598538605365328984
 GameObject:
   m_ObjectHideFlags: 0

@@ -94,6 +94,7 @@ MonoBehaviour:
   - {fileID: 829791821074607884}
   - {fileID: 404205496139069199}
   - {fileID: 6202470241626176226}
+  rootTubes: {fileID: 4196616680132467362}
 --- !u!1001 &2547009897491808053
 PrefabInstance:
   m_ObjectHideFlags: 0
