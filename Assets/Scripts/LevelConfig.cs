@@ -5,21 +5,22 @@ using UnityEngine;
 namespace GameTown.MiniGame.BallSort
 {
 
+    [System.Serializable]
     public class LevelConfig
     {
-        public List<UserLevelConfig> user_level;
-        public List<LevelDifficultyConfig> level_dificulty;
-        public List<RewardConfig> rewards;
+        public List<UserLevel> user_level;
+        public List<LevelDifficulty> level_dificulty;
+        public List<RewardData> rewards;
     }
     
-    public class UserLevelConfig
+    public class UserLevel
     {
         public int level_from;
         public int level_to;
         public List<string> level_difficulty;
     }
 
-    public class LevelDifficultyConfig
+    public class LevelDifficulty
     {
         public string level_difficulty;
         public int time;
@@ -28,7 +29,7 @@ namespace GameTown.MiniGame.BallSort
 
 
 
-    public class RewardConfig
+    public class RewardData
     {
         public int id;
         public int point_min;
