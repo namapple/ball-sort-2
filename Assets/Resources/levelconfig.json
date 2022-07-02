@@ -1,0 +1,250 @@
+{
+  "user_level": [
+    {
+      "level_from": 1,
+      "level_to": 1,
+      "level_difficulty": [
+        "beginner"
+      ]
+    },
+    {
+      "level_from": 2,
+      "level_to": 3,
+      "level_difficulty": [
+        "beginner",
+        "advanced"
+      ]
+    },
+    {
+      "level_from": 4,
+      "level_to": 6,
+      "level_difficulty": [
+        "advanced",
+        "master"
+      ]
+    },
+    {
+      "level_from": 7,
+      "level_to": 10,
+      "level_difficulty": [
+        "master",
+        "expert"
+      ]
+    },
+    {
+      "level_from": 11,
+      "level_to": 15,
+      "level_difficulty": [
+        "expert",
+        "genius"
+      ]
+    },
+    {
+      "level_from": 15,
+      "level_to": 10000,
+      "level_difficulty": [
+        "genius"
+      ]
+    }
+  ],
+  "level_dificulty": [
+    {
+      "level_difficulty": "beginner",
+      "time": 120,
+      "point_each_tube": 1
+    },
+    {
+      "level_difficulty": "advanced",
+      "time": 120,
+      "point_each_tube": 2
+    },
+    {
+      "level_difficulty": "master",
+      "time": 200,
+      "point_each_tube": 3
+    },
+    {
+      "level_difficulty": "expert",
+      "time": 250,
+      "point_each_tube": 4
+    },
+    {
+      "level_difficulty": "genius",
+      "time": 300,
+      "point_each_tube": 5
+    }
+  ],
+  "rewards": [
+    {
+      "id": 1,
+      "point_min": 3,
+      "reward": [
+        {
+          "hotel_id": 1,
+          "type": 0,
+          "number": 50
+        },
+        {
+          "type": 1,
+          "number": 1
+        },
+        {
+          "type": 7,
+          "number": 600
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "point_min": 10,
+      "reward": [
+        {
+          "hotel_id": 1,
+          "type": 0,
+          "number": 50
+        },
+        {
+          "type": 1,
+          "number": 1
+        },
+        {
+          "type": 7,
+          "number": 600
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "point_min": 20,
+      "reward": [
+        {
+          "hotel_id": 1,
+          "type": 0,
+          "number": 50
+        },
+        {
+          "type": 1,
+          "number": 1
+        },
+        {
+          "type": 7,
+          "number": 600
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "point_min": 30,
+      "reward": [
+        {
+          "hotel_id": 1,
+          "type": 0,
+          "number": 50
+        },
+        {
+          "type": 1,
+          "number": 1
+        },
+        {
+          "type": 7,
+          "number": 600
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "point_min": 50,
+      "reward": [
+        {
+          "hotel_id": 1,
+          "type": 0,
+          "number": 50
+        },
+        {
+          "type": 1,
+          "number": 1
+        },
+        {
+          "type": 7,
+          "number": 600
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "point_min": 70,
+      "reward": [
+        {
+          "hotel_id": 1,
+          "type": 0,
+          "number": 50
+        },
+        {
+          "type": 1,
+          "number": 1
+        },
+        {
+          "type": 7,
+          "number": 600
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "point_min": 80,
+      "reward": [
+        {
+          "hotel_id": 1,
+          "type": 0,
+          "number": 50
+        },
+        {
+          "type": 1,
+          "number": 1
+        },
+        {
+          "type": 7,
+          "number": 600
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "point_min": 150,
+      "reward": [
+        {
+          "hotel_id": 1,
+          "type": 0,
+          "number": 50
+        },
+        {
+          "type": 1,
+          "number": 1
+        },
+        {
+          "type": 7,
+          "number": 600
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "point_min": 300,
+      "reward": [
+        {
+          "hotel_id": 1,
+          "type": 0,
+          "number": 50
+        },
+        {
+          "type": 1,
+          "number": 1
+        },
+        {
+          "type": 7,
+          "number": 600
+        }
+      ]
+    }
+  ]
+}

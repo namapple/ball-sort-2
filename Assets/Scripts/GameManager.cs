@@ -2,18 +2,26 @@ using System.IO;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
-using UnityEngine.UI;
 using DG.Tweening;
+using UnityEngine.UI;
+using Button = UnityEngine.UI.Button;
 
 public class GameManager : MonoBehaviour
 {
-    public Button btnStart = null, btnUndo = null, btnAddTube = null, btnRandomLevel = null, btnReset = null;
+    public Button btnStart = null, btnUndo = null, btnAddTube = null, btnRandomLevel = null, btnReset = null, btnNextLevel = null;
     public GameObject tubeRoot = null;
     public GameObject itemBalls = null;
     public GameState gameState = GameState.PLAYING;
     public LevelDifficulty levelDifficulty = LevelDifficulty.ADVANCED;
     private TubeLayout tubeLayoutComponent = null;
     public LevelData levelData = new LevelData();
+
+    public Text txtCurrentLevel = null;
+
+    public int userCurrentLevel = 1;
+
+    public GameObject winPanel = null;
+    
     public int currentLevel = 50;
     public int undoLimit = 5;
     public TubeObject selectedTube = null;
@@ -22,11 +30,14 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        winPanel.SetActive(false);
+        txtCurrentLevel.text = "Level: " + userCurrentLevel;
         btnReset.onClick.AddListener(OnClickBtnReset);
         // btnStart.onClick.AddListener(OnClickButtonStart);
         btnUndo.onClick.AddListener(OnClickBtnUndo);
         btnAddTube.onClick.AddListener(OnClickBtnAddTube);
         btnRandomLevel.onClick.AddListener(OnClickBtnRandom);
+        btnNextLevel.onClick.AddListener(OnClickBtnNext);
     }
 
     private void OnClickButtonStart()
@@ -137,7 +148,7 @@ public class GameManager : MonoBehaviour
 
                                     if (CheckGameWin())
                                     {
-                                        Debug.Log("WIN!!!");
+                                        DoWin();
                                     }
                                 });
                     });
@@ -194,13 +205,16 @@ public class GameManager : MonoBehaviour
 
         if (gameState != GameState.PLAYING)
         {
+            Debug.Log("Return do gamestate != PLAYING");
             return;
         }
 
         if (listStepMoved.Count == 0)
         {
+            Debug.Log("Return do không có step move nào");
             return;
         }
+        
         if (selectedTube != null)
         {
             gameState = GameState.MOVING;
@@ -236,6 +250,7 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < newTubeLayout.tubeList.Count; i++)
         {
             newTubeLayout.tubeList[i].onClickTube += OnClickTubeObject;
+            newTubeLayout.tubeList[i].id = i;
         }
 
         for (int tubeIndex = 0; tubeIndex < tubeLayoutComponent.tubeList.Count; tubeIndex++)
@@ -274,14 +289,17 @@ public class GameManager : MonoBehaviour
 
     public void OnClickBtnRandom()
     {
-        levelDifficulty = (LevelDifficulty) Random.Range(0, 3); // K bao gồm expert và genius
+        levelDifficulty = (LevelDifficulty) Random.Range(0, 5); // K bao gồm expert và genius
         currentLevel = Random.Range(1, 121);
         Init();
+        txtCurrentLevel.text = "Level: " + userCurrentLevel;
     }
 
 
     public void OnClickBtnReset()
     {
+        txtCurrentLevel.text = "Level: " + userCurrentLevel;
+        listStepMoved.Clear();
         // Xóa hết balls có trong ballList để thêm ball mới
         for (int i = 0; i < ballList.Count; i++)
         {
@@ -328,6 +346,24 @@ public class GameManager : MonoBehaviour
             ballObject.transform.rotation =
                 tubeLayoutComponent.tubeList[tubeIndex].posList[ballIndex].transform.rotation;
         }
+    }
+
+
+    public void DoWin()
+    {
+        userCurrentLevel++;
+        txtCurrentLevel.text = "Level: " + userCurrentLevel;
+        winPanel.SetActive(true);
+    }
+
+    public void OnClickBtnNext()
+    {
+        OnClickBtnRandom();
+        winPanel.SetActive(false);
+    }
+    public void GetLevelData()
+    {
+        
     }
 }
 
