@@ -51,26 +51,31 @@
     {
       "level_difficulty": "beginner",
       "time": 120,
+      "max_level": 120,
       "point_each_tube": 1
     },
     {
       "level_difficulty": "advanced",
       "time": 120,
+      "max_level": 120,
       "point_each_tube": 2
     },
     {
       "level_difficulty": "master",
       "time": 200,
+      "max_level": 120,
       "point_each_tube": 3
     },
     {
       "level_difficulty": "expert",
       "time": 250,
+      "max_level": 120,
       "point_each_tube": 4
     },
     {
       "level_difficulty": "genius",
       "time": 300,
+      "max_level": 120,
       "point_each_tube": 5
     }
   ],

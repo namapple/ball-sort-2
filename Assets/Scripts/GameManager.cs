@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
 using DG.Tweening;
+using GameTown.MiniGame.BallSort;
 using UnityEngine.UI;
-using Button = UnityEngine.UI.Button;
 
 public class GameManager : MonoBehaviour
 {
@@ -16,6 +16,8 @@ public class GameManager : MonoBehaviour
     private TubeLayout tubeLayoutComponent = null;
     public LevelData levelData = new LevelData();
 
+    public LevelConfig levelConfig = new LevelConfig();
+
     public Text txtCurrentLevel = null;
 
     public int userCurrentLevel = 1;
@@ -25,11 +27,16 @@ public class GameManager : MonoBehaviour
     public int currentLevel = 50;
     public int undoLimit = 5;
     public TubeObject selectedTube = null;
+
+    
+    
     public List<BallObject> ballList = new List<BallObject>();
     public List<StepMove> listStepMoved = new List<StepMove>();
 
     private void Start()
     {
+        levelConfig = LoadConfig();
+        Debug.Log(levelConfig.user_level[0].level_difficulty[0]);
         winPanel.SetActive(false);
         txtCurrentLevel.text = "Level: " + userCurrentLevel;
         btnReset.onClick.AddListener(OnClickBtnReset);
@@ -51,6 +58,17 @@ public class GameManager : MonoBehaviour
         SetUpTubeLayout();
     }
 
+    public LevelConfig LoadConfig()
+    {
+        LevelConfig config = new LevelConfig();
+
+        TextAsset jsonFile = Resources.Load<TextAsset>("level_config");
+
+        config = JsonConvert.DeserializeObject<LevelConfig>(jsonFile.text);
+
+        return config;
+    }
+    
     private LevelData LoadLevelData()
     {
         // đường dẫn của file leveldata, lưu ý: k cần đuôi .bytes
@@ -148,6 +166,7 @@ public class GameManager : MonoBehaviour
 
                                     if (CheckGameWin())
                                     {
+                                        gameState = GameState.WIN;
                                         DoWin();
                                     }
                                 });
@@ -201,8 +220,6 @@ public class GameManager : MonoBehaviour
 
     public void OnClickBtnUndo()
     {
-        Debug.Log("Click btn UNDO");
-
         if (gameState != GameState.PLAYING)
         {
             Debug.Log("Return do gamestate != PLAYING");
@@ -241,6 +258,18 @@ public class GameManager : MonoBehaviour
 
     public void OnClickBtnAddTube()
     {
+        if (gameState != GameState.PLAYING)
+        {
+            return;
+        }
+
+        // Check xem có tubeLayout chưa thì mới thêm
+        if (tubeLayoutComponent == null)
+        {
+            Debug.Log("Chưa có tubeLayout nào");
+            return;
+        }
+        
         string tubeLayoutPath = Path.Combine("Prefabs", "Tubes", "Tube_" + (levelData.numStack + 1));
         GameObject tubeLayoutPrefab = Resources.Load<GameObject>(tubeLayoutPath);
 
@@ -289,6 +318,13 @@ public class GameManager : MonoBehaviour
 
     public void OnClickBtnRandom()
     {
+        listStepMoved.Clear();
+        if (gameState != GameState.PLAYING)
+        {
+            return;
+        }
+        
+        
         levelDifficulty = (LevelDifficulty) Random.Range(0, 5); // K bao gồm expert và genius
         currentLevel = Random.Range(1, 121);
         Init();
@@ -298,15 +334,27 @@ public class GameManager : MonoBehaviour
 
     public void OnClickBtnReset()
     {
+        if (gameState != GameState.PLAYING)
+        {
+            return;
+        }
+
+        // Chưa có tubeLayout thì không reset được
+        if (tubeLayoutComponent == null)
+        {
+            Debug.Log("Chưa có tubeLayout");
+            return;
+        }
         txtCurrentLevel.text = "Level: " + userCurrentLevel;
         listStepMoved.Clear();
+        
         // Xóa hết balls có trong ballList để thêm ball mới
         for (int i = 0; i < ballList.Count; i++)
         {
             Destroy(ballList[i].gameObject);
         }
         ballList.Clear();
-
+        
         // Xóa hết ball object đã thêm vào từng tube trong tubeList để thêm mới
         for (int i = 0; i < tubeLayoutComponent.tubeList.Count; i++)
         {
@@ -351,13 +399,16 @@ public class GameManager : MonoBehaviour
 
     public void DoWin()
     {
+        Debug.Log("WIN!!!!!");
         userCurrentLevel++;
-        txtCurrentLevel.text = "Level: " + userCurrentLevel;
         winPanel.SetActive(true);
     }
 
     public void OnClickBtnNext()
     {
+        gameState = GameState.PLAYING;
+        listStepMoved.Clear();
+        txtCurrentLevel.text = "Level: " + userCurrentLevel;
         OnClickBtnRandom();
         winPanel.SetActive(false);
     }
@@ -372,6 +423,7 @@ public enum GameState
     PLAYING,
     MOVING,
     WIN,
+    LOSE,
 }
 
 public class StepMove

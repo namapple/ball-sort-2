@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace GameTown.MiniGame.BallSort
@@ -24,6 +25,7 @@ namespace GameTown.MiniGame.BallSort
     {
         public string level_difficulty;
         public int time;
+        public int max_level;
         public int point_each_tube;
     }
 
