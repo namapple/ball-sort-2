@@ -444,7 +444,7 @@ public class GameManager : MonoBehaviour
         Init();
         txtCurrentLevel.text = "Level: " + userCurrentLevel;
         txtDiffucultyMode.text = "Mode: " + difficulty;
-        txtRandomStage.text = "Stage: " + randomStagePerDifficulty;
+        
         winPanel.SetActive(false);
     }
     public void GetLevelDifficulty()
@@ -457,6 +457,11 @@ public class GameManager : MonoBehaviour
 
                 difficulty = levelConfig.user_level[i].level_difficulty[index];
                 GetLevelDifficultyConfig();
+                
+                txtCurrentLevel.text = "Level: " + userCurrentLevel;
+                txtDiffucultyMode.text = "Mode: " + difficulty;
+                
+                
                 Debug.Log(difficulty);
                 break;
             }
@@ -478,6 +483,7 @@ public class GameManager : MonoBehaviour
     public void GetRandomStage()
     {
         randomStagePerDifficulty = Random.Range(1, difficultyConfig.max_level + 1);
+        txtRandomStage.text = "Stage: " + randomStagePerDifficulty;
     }
     
     public void GetTimeLimitAtStart()
@@ -538,6 +544,7 @@ public class GameManager : MonoBehaviour
         gameState = GameState.PLAYING;
         losePanel.SetActive(false);
         userCurrentLevel = 1;
+        txtCurrentLevel.text = "Level: " + userCurrentLevel;
         currentScore = 0;
         txtScore.text = "Score: " + currentScore;
         Init();
