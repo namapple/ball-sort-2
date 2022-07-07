@@ -11,11 +11,11 @@ using Random = UnityEngine.Random;
 
 public class GameManager : MonoBehaviour
 {
-    public Button btnStart = null, btnUndo = null, btnAddTube = null, btnRandomLevel = null, btnReset = null, btnNextLevel = null;
+    public Button btnUndo = null, btnAddTube = null, btnReset = null, btnNextLevel = null, btnRestart = null, btnMainMenu = null;
     public GameObject tubeRoot = null;
     public GameObject itemBalls = null;
     public GameState gameState = GameState.PLAYING;
-    public LevelDifficulty levelDifficulty = LevelDifficulty.ADVANCED;
+    // public LevelDifficulty levelDifficulty = LevelDifficulty.ADVANCED;
     
     private TubeLayout tubeLayoutComponent = null;
     public LevelData levelData = new LevelData();
@@ -33,8 +33,15 @@ public class GameManager : MonoBehaviour
 
     public int userCurrentLevel = 1;
     public string difficulty = null;
+    public LevelDifficulty difficultyConfig;
     public int randomStagePerDifficulty;
     public GameObject winPanel = null;
+    public GameObject losePanel = null;
+    public Text txtScore = null;
+    public Text txtEndScore = null;
+    
+    private int currentScore;
+    
 
     public int undoLimit = 5;
     
@@ -47,23 +54,21 @@ public class GameManager : MonoBehaviour
     {
         levelConfig = LoadConfig();
         Init();
+        txtScore.text = "Score: " + currentScore;
         winPanel.SetActive(false);
+        losePanel.SetActive(false);
         txtCurrentLevel.text = "Level: " + userCurrentLevel;
         txtDiffucultyMode.text = "Mode: " + difficulty;
         txtRandomStage.text = "Stage: " + randomStagePerDifficulty;
         btnReset.onClick.AddListener(OnClickBtnReset);
-        // btnStart.onClick.AddListener(OnClickButtonStart);
         btnUndo.onClick.AddListener(OnClickBtnUndo);
         btnAddTube.onClick.AddListener(OnClickBtnAddTube);
-        btnRandomLevel.onClick.AddListener(OnClickBtnRandom);
+        // btnRandomLevel.onClick.AddListener(OnClickBtnRandom);
         btnNextLevel.onClick.AddListener(OnClickBtnNext);
+        btnRestart.onClick.AddListener(OnClickBtnRestart);
+        btnMainMenu.onClick.AddListener(OnClickBtnMainMenu);
     }
     
-    private void OnClickButtonStart()
-    {
-        Init();
-    }
-
     private void Init()
     {
         LoadLevelData();
@@ -138,9 +143,9 @@ public class GameManager : MonoBehaviour
     {
         if (selectedTube == null)
         {
-            if (tube.IsTubeEmpty())
+            if (tube.IsTubeEmpty() || tube.IsTubeResolved())
             {
-                Debug.Log("Click lần đầu vào TUBE rỗng");
+                Debug.Log("Click lần đầu vào TUBE rỗng/đã xong");
                 return;
             }
 
@@ -165,6 +170,7 @@ public class GameManager : MonoBehaviour
             else
             {
                 Debug.Log("Đủ đkiện nhận ball");
+                int selectedTubeId = selectedTube.id;
                 tube.ballObjects.Add(
                     selectedTube.ballObjects[selectedTube.ballObjects.Count - 1]);
                 selectedTube.ballObjects[selectedTube.ballObjects.Count - 1].transform
@@ -174,10 +180,15 @@ public class GameManager : MonoBehaviour
                             .DOMove(tube.posList[tube.ballObjects.Count - 1].transform.position, 0.15f).OnComplete(
                                 () =>
                                 {
+                                    int pointAddedStep = 0;
                                     if (tube.IsTubeResolved())
                                     {
                                         Debug.Log("TUBE is resolved");
+                                        pointAddedStep = AddScore();
                                     }
+                                    
+                                    // Gán id của 2 tube vào StepMove
+                                    listStepMoved.Add(new StepMove(selectedTubeId, tube.id, pointAddedStep));
 
                                     if (CheckGameWin())
                                     {
@@ -188,8 +199,6 @@ public class GameManager : MonoBehaviour
                     });
                 selectedTube.ballObjects.Remove(
                     selectedTube.ballObjects[selectedTube.ballObjects.Count - 1]);
-                // Gán id của 2 tube vào StepMove
-                listStepMoved.Add(new StepMove(selectedTube.id, tube.id));
                 selectedTube = null;
             }
         }
@@ -200,6 +209,9 @@ public class GameManager : MonoBehaviour
         StepMove step = listStepMoved[listStepMoved.Count - 1];
         TubeObject tubeA = tubeLayoutComponent.tubeList[step.tubeA];
         TubeObject tubeB = tubeLayoutComponent.tubeList[step.tubeB];
+
+        currentScore -= step.point;
+        txtScore.text = "Score: " + currentScore;
         
         gameState = GameState.MOVING;
 
@@ -275,6 +287,7 @@ public class GameManager : MonoBehaviour
     {
         if (gameState != GameState.PLAYING)
         {
+            Debug.Log("Return do gameState != PLAYING");
             return;
         }
 
@@ -331,26 +344,27 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
-    public void OnClickBtnRandom()
-    {
-        listStepMoved.Clear();
-        if (gameState != GameState.PLAYING)
-        {
-            return;
-        }
-        
-        levelDifficulty = (LevelDifficulty) Random.Range(0, 5); // K bao gồm expert và genius
-        randomStagePerDifficulty = Random.Range(1, 121);
-        Init();
-        txtCurrentLevel.text = "Level: " + userCurrentLevel;
-        txtDiffucultyMode.text = "Mode: " + difficulty;
-        txtRandomStage.text = "Stage: " + randomStagePerDifficulty;
-    }
+    // public void OnClickBtnRandom()
+    // {
+    //     listStepMoved.Clear();
+    //     if (gameState != GameState.PLAYING)
+    //     {
+    //         return;
+    //     }
+    //     
+    //     levelDifficulty = (LevelDifficulty) Random.Range(0, 5); // K bao gồm expert và genius
+    //     randomStagePerDifficulty = Random.Range(1, 121);
+    //     Init();
+    //     txtCurrentLevel.text = "Level: " + userCurrentLevel;
+    //     txtDiffucultyMode.text = "Mode: " + difficulty;
+    //     txtRandomStage.text = "Stage: " + randomStagePerDifficulty;
+    // }
 
     public void OnClickBtnReset()
     {
         if (gameState != GameState.PLAYING)
         {
+            Debug.Log("Return do gameState != PLAYING");
             return;
         }
 
@@ -421,7 +435,7 @@ public class GameManager : MonoBehaviour
         userCurrentLevel++;
         winPanel.SetActive(true);
     }
-
+    
     public void OnClickBtnNext()
     {
         gameState = GameState.PLAYING;
@@ -442,28 +456,35 @@ public class GameManager : MonoBehaviour
                 int index = Random.Range(0, levelConfig.user_level[i].level_difficulty.Count);
 
                 difficulty = levelConfig.user_level[i].level_difficulty[index];
+                GetLevelDifficultyConfig();
                 Debug.Log(difficulty);
                 break;
             }
         }
     }
-    
+
+    public void GetLevelDifficultyConfig()
+    {
+        for (int i = 0; i <= levelConfig.level_dificulty.Count; i++)
+        {
+            if (difficulty.Equals(levelConfig.level_dificulty[i].level_difficulty))
+            {
+                difficultyConfig = levelConfig.level_dificulty[i];
+                break;
+            }
+        }
+    }
+
     public void GetRandomStage()
     {
-        randomStagePerDifficulty = Random.Range(1, levelConfig.level_dificulty[0].max_level + 1);
+        randomStagePerDifficulty = Random.Range(1, difficultyConfig.max_level + 1);
     }
     
     public void GetTimeLimitAtStart()
     {
-        for(int i = 0;i<levelConfig.level_dificulty.Count;i++)
-        {
-            if (difficulty == levelConfig.level_dificulty[i].level_difficulty)
-            {
-                maxDuration = (float)levelConfig.level_dificulty[i].time;
-                remainningTime = maxDuration;
-                break;
-            }
-        }
+        maxDuration = difficultyConfig.time;
+        remainningTime = maxDuration;
+       
         UpdateTimer();
     }
 
@@ -473,9 +494,6 @@ public class GameManager : MonoBehaviour
         {
             StopCoroutine(countdownTimer);
         }
-
-        
-        
         // float fillAmount = (remainningTime-0.1f) / maxDuration;
         // progressFill.DOFillAmount(fillAmount,0.1f);
 
@@ -502,7 +520,32 @@ public class GameManager : MonoBehaviour
     {
         // Show score panel
         // 2 btn: Return Home, Restart (continue playing at Level 1)
-        Debug.Log("TIME's UP");
+        Debug.Log("HẾT GIỜ!");
+        losePanel.SetActive(true);
+        txtEndScore.text = "End Score: " + currentScore;
+    }
+
+    public int AddScore()
+    {
+        currentScore += difficultyConfig.point_each_tube;
+        txtScore.text = "Score: " + currentScore;
+        return difficultyConfig.point_each_tube;
+    }
+
+    public void OnClickBtnRestart()
+    {
+        Debug.Log("Restart Game -- Set UserCurrentLevel = 1");
+        gameState = GameState.PLAYING;
+        losePanel.SetActive(false);
+        userCurrentLevel = 1;
+        currentScore = 0;
+        txtScore.text = "Score: " + currentScore;
+        Init();
+    }
+
+    public void OnClickBtnMainMenu()
+    {
+        Debug.Log("Return to Main Menu");
     }
 }
 
@@ -518,10 +561,11 @@ public class StepMove
 {
     public int tubeA = -1;
     public int tubeB = -1;
-
-    public StepMove(int tubeA, int tubeB)
+    public int point = 0;
+    public StepMove(int tubeA, int tubeB,int point)
     {
         this.tubeA = tubeA;
         this.tubeB = tubeB;
+        this.point = point;
     }
 }
