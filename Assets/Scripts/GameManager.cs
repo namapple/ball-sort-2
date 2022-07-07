@@ -13,22 +13,24 @@ public class GameManager : MonoBehaviour
     public GameObject itemBalls = null;
     public GameState gameState = GameState.PLAYING;
     public LevelDifficulty levelDifficulty = LevelDifficulty.ADVANCED;
+    
     private TubeLayout tubeLayoutComponent = null;
     public LevelData levelData = new LevelData();
 
     public LevelConfig levelConfig = new LevelConfig();
 
     public Text txtCurrentLevel = null;
+    public Text txtDiffucultyMode = null;
+    public Text txtRandomStage = null;
 
     public int userCurrentLevel = 1;
-
+    public string difficulty = null;
+    public int randomStagePerDifficulty;
     public GameObject winPanel = null;
-    
-    public int currentLevel = 50;
-    public int undoLimit = 5;
-    public TubeObject selectedTube = null;
 
+    public int undoLimit = 5;
     
+    public TubeObject selectedTube = null;
     
     public List<BallObject> ballList = new List<BallObject>();
     public List<StepMove> listStepMoved = new List<StepMove>();
@@ -36,9 +38,11 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         levelConfig = LoadConfig();
-        Debug.Log(levelConfig.user_level[0].level_difficulty[0]);
+        Init();
         winPanel.SetActive(false);
         txtCurrentLevel.text = "Level: " + userCurrentLevel;
+        txtDiffucultyMode.text = "Mode: " + difficulty;
+        txtRandomStage.text = "Stage: " + randomStagePerDifficulty;
         btnReset.onClick.AddListener(OnClickBtnReset);
         // btnStart.onClick.AddListener(OnClickButtonStart);
         btnUndo.onClick.AddListener(OnClickBtnUndo);
@@ -71,14 +75,15 @@ public class GameManager : MonoBehaviour
     
     private LevelData LoadLevelData()
     {
+        // random độ khó theo level
+        GetLevelData();
         // đường dẫn của file leveldata, lưu ý: k cần đuôi .bytes
         string levelDataPath =
-            Path.Combine("LevelData", levelDifficulty.ToString().ToLower(),
-                "level_" + currentLevel);
+            Path.Combine("LevelData", difficulty.ToLower(), "level_" + randomStagePerDifficulty);
         // load file text leveldata
         TextAsset levelDataFile = Resources.Load<TextAsset>(levelDataPath);
         // deserialize file text vừa load
-        levelData = JsonConvert.DeserializeObject<LevelData>(levelDataFile.ToString());
+        levelData = JsonConvert.DeserializeObject<LevelData>(levelDataFile.text);
         return levelData;
     }
 
@@ -324,13 +329,13 @@ public class GameManager : MonoBehaviour
             return;
         }
         
-        
         levelDifficulty = (LevelDifficulty) Random.Range(0, 5); // K bao gồm expert và genius
-        currentLevel = Random.Range(1, 121);
+        randomStagePerDifficulty = Random.Range(1, 121);
         Init();
         txtCurrentLevel.text = "Level: " + userCurrentLevel;
+        txtDiffucultyMode.text = "Mode: " + difficulty;
+        txtRandomStage.text = "Stage: " + randomStagePerDifficulty;
     }
-
 
     public void OnClickBtnReset()
     {
@@ -346,6 +351,8 @@ public class GameManager : MonoBehaviour
             return;
         }
         txtCurrentLevel.text = "Level: " + userCurrentLevel;
+        txtDiffucultyMode.text = "Mode: " + difficulty;
+        txtRandomStage.text = "Stage: " + randomStagePerDifficulty;
         listStepMoved.Clear();
         
         // Xóa hết balls có trong ballList để thêm ball mới
@@ -408,14 +415,61 @@ public class GameManager : MonoBehaviour
     {
         gameState = GameState.PLAYING;
         listStepMoved.Clear();
+        Init();
         txtCurrentLevel.text = "Level: " + userCurrentLevel;
-        OnClickBtnRandom();
+        txtDiffucultyMode.text = "Mode: " + difficulty;
+        txtRandomStage.text = "Stage: " + randomStagePerDifficulty;
         winPanel.SetActive(false);
     }
     public void GetLevelData()
     {
+        randomStagePerDifficulty = Random.Range(1, levelConfig.level_dificulty[0].max_level + 1);
+        if (userCurrentLevel == levelConfig.user_level[0].level_from)
+        {
+            difficulty = levelConfig.user_level[0].level_difficulty[0];
+            Debug.Log(difficulty);
+        }
         
+        if (userCurrentLevel >= levelConfig.user_level[1].level_from && userCurrentLevel <= levelConfig.user_level[1].level_to)
+        {
+            int index = Random.Range(0, levelConfig.user_level[1].level_difficulty.Count);
+
+            difficulty = levelConfig.user_level[1].level_difficulty[index];
+            Debug.Log(difficulty);
+        }
+        
+        if (userCurrentLevel >= levelConfig.user_level[2].level_from && userCurrentLevel <= levelConfig.user_level[2].level_to)
+        {
+            int index = Random.Range(0, levelConfig.user_level[2].level_difficulty.Count);
+
+            difficulty = levelConfig.user_level[2].level_difficulty[index];
+            Debug.Log(difficulty);
+        }
+        
+        if (userCurrentLevel >= levelConfig.user_level[3].level_from && userCurrentLevel <= levelConfig.user_level[3].level_to)
+        {
+            int index = Random.Range(0, levelConfig.user_level[3].level_difficulty.Count);
+
+            difficulty = levelConfig.user_level[3].level_difficulty[index];
+            Debug.Log(difficulty);
+        }
+        
+        if (userCurrentLevel >= levelConfig.user_level[4].level_from && userCurrentLevel <= levelConfig.user_level[4].level_to)
+        {
+            int index = Random.Range(0, levelConfig.user_level[4].level_difficulty.Count);
+
+            difficulty = levelConfig.user_level[4].level_difficulty[index];
+            Debug.Log(difficulty);
+        }
+        
+        if (userCurrentLevel >= levelConfig.user_level[5].level_from && userCurrentLevel <= levelConfig.user_level[5].level_to)
+        {
+            difficulty = levelConfig.user_level[5].level_difficulty[0];
+            Debug.Log(difficulty);
+        }
     }
+    
+    
 }
 
 public enum GameState
