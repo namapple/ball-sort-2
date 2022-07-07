@@ -22,6 +22,7 @@ public class GameManager : MonoBehaviour
     public Text txtCurrentLevel = null;
     public Text txtDiffucultyMode = null;
     public Text txtRandomStage = null;
+    public Image progressFill = null;
 
     public int userCurrentLevel = 1;
     public string difficulty = null;
