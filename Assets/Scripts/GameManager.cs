@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.IO;
 using System.Collections.Generic;
 using Newtonsoft.Json;
@@ -5,6 +7,7 @@ using UnityEngine;
 using DG.Tweening;
 using GameTown.MiniGame.BallSort;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 public class GameManager : MonoBehaviour
 {
@@ -23,6 +26,10 @@ public class GameManager : MonoBehaviour
     public Text txtDiffucultyMode = null;
     public Text txtRandomStage = null;
     public Image progressFill = null;
+
+    private float maxDuration;
+    private float remainningTime;
+    private Coroutine countdownTimer;
 
     public int userCurrentLevel = 1;
     public string difficulty = null;
@@ -51,7 +58,7 @@ public class GameManager : MonoBehaviour
         btnRandomLevel.onClick.AddListener(OnClickBtnRandom);
         btnNextLevel.onClick.AddListener(OnClickBtnNext);
     }
-
+    
     private void OnClickButtonStart()
     {
         Init();
@@ -61,6 +68,7 @@ public class GameManager : MonoBehaviour
     {
         LoadLevelData();
         SetUpTubeLayout();
+        GetTimeLimitAtStart();
     }
 
     public LevelConfig LoadConfig()
@@ -77,7 +85,8 @@ public class GameManager : MonoBehaviour
     private LevelData LoadLevelData()
     {
         // random độ khó theo level
-        GetLevelData();
+        GetLevelDifficulty();
+        GetRandomStage();
         // đường dẫn của file leveldata, lưu ý: k cần đuôi .bytes
         string levelDataPath =
             Path.Combine("LevelData", difficulty.ToLower(), "level_" + randomStagePerDifficulty);
@@ -407,6 +416,7 @@ public class GameManager : MonoBehaviour
 
     public void DoWin()
     {
+        StopCoroutine(countdownTimer);
         Debug.Log("WIN!!!!!");
         userCurrentLevel++;
         winPanel.SetActive(true);
@@ -415,6 +425,7 @@ public class GameManager : MonoBehaviour
     public void OnClickBtnNext()
     {
         gameState = GameState.PLAYING;
+        remainningTime = 0f;
         listStepMoved.Clear();
         Init();
         txtCurrentLevel.text = "Level: " + userCurrentLevel;
@@ -422,55 +433,77 @@ public class GameManager : MonoBehaviour
         txtRandomStage.text = "Stage: " + randomStagePerDifficulty;
         winPanel.SetActive(false);
     }
-    public void GetLevelData()
+    public void GetLevelDifficulty()
     {
-        randomStagePerDifficulty = Random.Range(1, levelConfig.level_dificulty[0].max_level + 1);
-        if (userCurrentLevel == levelConfig.user_level[0].level_from)
+        for (int i = 0; i <= levelConfig.user_level.Count; i++)
         {
-            difficulty = levelConfig.user_level[0].level_difficulty[0];
-            Debug.Log(difficulty);
-        }
-        
-        if (userCurrentLevel >= levelConfig.user_level[1].level_from && userCurrentLevel <= levelConfig.user_level[1].level_to)
-        {
-            int index = Random.Range(0, levelConfig.user_level[1].level_difficulty.Count);
+            if (userCurrentLevel >= levelConfig.user_level[i].level_from && userCurrentLevel <= levelConfig.user_level[i].level_to)
+            {
+                int index = Random.Range(0, levelConfig.user_level[i].level_difficulty.Count);
 
-            difficulty = levelConfig.user_level[1].level_difficulty[index];
-            Debug.Log(difficulty);
-        }
-        
-        if (userCurrentLevel >= levelConfig.user_level[2].level_from && userCurrentLevel <= levelConfig.user_level[2].level_to)
-        {
-            int index = Random.Range(0, levelConfig.user_level[2].level_difficulty.Count);
-
-            difficulty = levelConfig.user_level[2].level_difficulty[index];
-            Debug.Log(difficulty);
-        }
-        
-        if (userCurrentLevel >= levelConfig.user_level[3].level_from && userCurrentLevel <= levelConfig.user_level[3].level_to)
-        {
-            int index = Random.Range(0, levelConfig.user_level[3].level_difficulty.Count);
-
-            difficulty = levelConfig.user_level[3].level_difficulty[index];
-            Debug.Log(difficulty);
-        }
-        
-        if (userCurrentLevel >= levelConfig.user_level[4].level_from && userCurrentLevel <= levelConfig.user_level[4].level_to)
-        {
-            int index = Random.Range(0, levelConfig.user_level[4].level_difficulty.Count);
-
-            difficulty = levelConfig.user_level[4].level_difficulty[index];
-            Debug.Log(difficulty);
-        }
-        
-        if (userCurrentLevel >= levelConfig.user_level[5].level_from && userCurrentLevel <= levelConfig.user_level[5].level_to)
-        {
-            difficulty = levelConfig.user_level[5].level_difficulty[0];
-            Debug.Log(difficulty);
+                difficulty = levelConfig.user_level[i].level_difficulty[index];
+                Debug.Log(difficulty);
+                break;
+            }
         }
     }
     
+    public void GetRandomStage()
+    {
+        randomStagePerDifficulty = Random.Range(1, levelConfig.level_dificulty[0].max_level + 1);
+    }
     
+    public void GetTimeLimitAtStart()
+    {
+        for(int i = 0;i<levelConfig.level_dificulty.Count;i++)
+        {
+            if (difficulty == levelConfig.level_dificulty[i].level_difficulty)
+            {
+                maxDuration = (float)levelConfig.level_dificulty[i].time;
+                remainningTime = maxDuration;
+                break;
+            }
+        }
+        UpdateTimer();
+    }
+
+    public void UpdateTimer()
+    {
+        if (countdownTimer != null)
+        {
+            StopCoroutine(countdownTimer);
+        }
+
+        
+        
+        // float fillAmount = (remainningTime-0.1f) / maxDuration;
+        // progressFill.DOFillAmount(fillAmount,0.1f);
+
+        countdownTimer = MonoExtensions.InvokeRepeatingSafe(this, () =>
+        {
+            remainningTime -= 0.1f;
+            float fillAmount = remainningTime / maxDuration;
+
+            // progressFill.fillAmount = remainningTime / maxDuration;
+            // float fillAmount = (remainningTime-0.1f) / maxDuration;
+            // if (fillAmount < 0) fillAmount = 0;
+            
+            progressFill.DOFillAmount(fillAmount,0.1f);
+            if (remainningTime <= 0)
+            {
+                gameState = GameState.LOSE;
+                DOLose();
+                StopCoroutine(countdownTimer);
+            }
+        }, new WaitForSecondsRealtime(0f), new WaitForSecondsRealtime(0.1f));
+    }
+
+    public void DOLose()
+    {
+        // Show score panel
+        // 2 btn: Return Home, Restart (continue playing at Level 1)
+        Debug.Log("TIME's UP");
+    }
 }
 
 public enum GameState
