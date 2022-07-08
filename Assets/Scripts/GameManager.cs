@@ -582,11 +582,6 @@ public class GameManager : MonoBehaviour
         UpdateTimer();
         pausePanel.SetActive(false);
     }
-    public void OnClickBtnClose()
-    {
-        Debug.Log("Return to Main Menu");
-        
-    }
 
     public void OnClickBtnWin()
     {
@@ -598,6 +593,15 @@ public class GameManager : MonoBehaviour
         remainningTime = 0;
         UpdateTimer();
     }
+    
+    public void OnClickBtnClose()
+    {
+        Debug.Log("Return to Main Menu");
+        
+    }
+    
+    
+    
     
     // END CLASS GameManager.cs
 }
