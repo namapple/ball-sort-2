@@ -11,7 +11,7 @@ using Random = UnityEngine.Random;
 
 public class GameManager : MonoBehaviour
 {
-    public Button btnUndo = null, btnAddTube = null, btnReset = null, btnNextLevel = null, btnRestart = null, btnMainMenu = null, btnPause = null, btnResume = null;
+    public Button btnUndo = null, btnAddTube = null, btnReset = null, btnNextLevel = null, btnRestart = null, btnClose = null, btnPause = null, btnResume = null;
     public Button btnWin = null, btnLose = null;
     public GameObject tubeRoot = null;
     public GameObject itemBalls = null;
@@ -63,7 +63,7 @@ public class GameManager : MonoBehaviour
         btnAddTube.onClick.AddListener(OnClickBtnAddTube);
         btnNextLevel.onClick.AddListener(OnClickBtnNext);
         btnRestart.onClick.AddListener(OnClickBtnRestart);
-        btnMainMenu.onClick.AddListener(OnClickBtnMainMenu);
+        btnClose.onClick.AddListener(OnClickBtnClose);
         btnPause.onClick.AddListener(OnClickBtnPause);
         btnResume.onClick.AddListener(OnClickBtnResume);
         btnWin.onClick.AddListener(OnClickBtnWin);
@@ -582,7 +582,7 @@ public class GameManager : MonoBehaviour
         UpdateTimer();
         pausePanel.SetActive(false);
     }
-    public void OnClickBtnMainMenu()
+    public void OnClickBtnClose()
     {
         Debug.Log("Return to Main Menu");
         
