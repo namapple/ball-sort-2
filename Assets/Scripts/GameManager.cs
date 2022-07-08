@@ -377,6 +377,16 @@ public class GameManager : MonoBehaviour
         txtCurrentLevel.text = "Level: " + userCurrentLevel;
         txtDiffucultyMode.text = "Mode: " + difficulty;
         txtRandomStage.text = "Stage: " + randomStagePerDifficulty;
+        
+        // Trừ hết điểm của level hiện tại khi reset
+        int totalScore = 0;
+        for (int i = 0; i < listStepMoved.Count; i++)
+        {
+            totalScore += listStepMoved[i].point;
+        }
+
+        currentScore -= totalScore;
+        txtScore.text = "Score: " + currentScore;
         listStepMoved.Clear();
         
         // Xóa hết balls có trong ballList để thêm ball mới

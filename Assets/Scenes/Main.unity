@@ -200,7 +200,7 @@ MonoBehaviour:
   txtDiffucultyMode: {fileID: 2089956689}
   txtRandomStage: {fileID: 889357194}
   progressFill: {fileID: 787931775}
-  userCurrentLevel: 7
+  userCurrentLevel: 1
   difficulty: 
   randomStagePerDifficulty: 50
   winPanel: {fileID: 1123177125}
