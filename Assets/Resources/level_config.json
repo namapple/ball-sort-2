@@ -50,7 +50,7 @@
   "level_dificulty": [
     {
       "level_difficulty": "beginner",
-      "time": 120,
+      "time": 60,
       "max_level": 120,
       "point_each_tube": 1
     },

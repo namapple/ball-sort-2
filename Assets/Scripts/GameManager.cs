@@ -11,7 +11,8 @@ using Random = UnityEngine.Random;
 
 public class GameManager : MonoBehaviour
 {
-    public Button btnUndo = null, btnAddTube = null, btnReset = null, btnNextLevel = null, btnRestart = null, btnMainMenu = null;
+    public Button btnUndo = null, btnAddTube = null, btnReset = null, btnNextLevel = null, btnRestart = null, btnMainMenu = null, btnPause = null, btnResume = null;
+    public Button btnWin = null, btnLose = null;
     public GameObject tubeRoot = null;
     public GameObject itemBalls = null;
     public GameState gameState = GameState.PLAYING;
@@ -37,14 +38,10 @@ public class GameManager : MonoBehaviour
     public int randomStagePerDifficulty;
     public GameObject winPanel = null;
     public GameObject losePanel = null;
+    public GameObject pausePanel = null;
     public Text txtScore = null;
     public Text txtEndScore = null;
-    
     private int currentScore;
-    
-
-    public int undoLimit = 5;
-    
     public TubeObject selectedTube = null;
     
     public List<BallObject> ballList = new List<BallObject>();
@@ -55,18 +52,22 @@ public class GameManager : MonoBehaviour
         levelConfig = LoadConfig();
         Init();
         txtScore.text = "Score: " + currentScore;
-        winPanel.SetActive(false);
+        // winPanel.SetActive(false);
         losePanel.SetActive(false);
+        pausePanel.SetActive(false);
         txtCurrentLevel.text = "Level: " + userCurrentLevel;
         txtDiffucultyMode.text = "Mode: " + difficulty;
         txtRandomStage.text = "Stage: " + randomStagePerDifficulty;
         btnReset.onClick.AddListener(OnClickBtnReset);
         btnUndo.onClick.AddListener(OnClickBtnUndo);
         btnAddTube.onClick.AddListener(OnClickBtnAddTube);
-        // btnRandomLevel.onClick.AddListener(OnClickBtnRandom);
         btnNextLevel.onClick.AddListener(OnClickBtnNext);
         btnRestart.onClick.AddListener(OnClickBtnRestart);
         btnMainMenu.onClick.AddListener(OnClickBtnMainMenu);
+        btnPause.onClick.AddListener(OnClickBtnPause);
+        btnResume.onClick.AddListener(OnClickBtnResume);
+        btnWin.onClick.AddListener(OnClickBtnWin);
+        btnLose.onClick.AddListener(OnClickBtnLose);
     }
     
     private void Init()
@@ -91,11 +92,12 @@ public class GameManager : MonoBehaviour
     {
         // random độ khó theo level
         GetLevelDifficulty();
+        // random stage 1 -> 120
         GetRandomStage();
         // đường dẫn của file leveldata, lưu ý: k cần đuôi .bytes
         string levelDataPath =
             Path.Combine("LevelData", difficulty.ToLower(), "level_" + randomStagePerDifficulty);
-        // load file text leveldata
+        // load file text leveldata từ thư mực Resources (thư mục đặc biệt của Unity)
         TextAsset levelDataFile = Resources.Load<TextAsset>(levelDataPath);
         // deserialize file text vừa load
         levelData = JsonConvert.DeserializeObject<LevelData>(levelDataFile.text);
@@ -128,14 +130,14 @@ public class GameManager : MonoBehaviour
         // Lấy component để truy cập tubeList
         tubeLayoutComponent = tubeLayoutObj.GetComponent<TubeLayout>();
 
-        //chạy loop qua tubeList để subscribe Action OnClickTube
+        // Chạy loop qua tubeList để subscribe Action OnClickTube
         for (int i = 0; i < tubeLayoutComponent.tubeList.Count; i++)
         {
             tubeLayoutComponent.tubeList[i].onClickTube += OnClickTubeObject;
             tubeLayoutComponent.tubeList[i].id = i;
         }
         
-        // chạy loop đổ bóng vào các tube theo tubeIndex và ballIndex
+        // Chạy loop đổ bóng vào các tube theo tubeIndex và ballIndex
         FillBall();
     }
 
@@ -210,39 +212,35 @@ public class GameManager : MonoBehaviour
         TubeObject tubeA = tubeLayoutComponent.tubeList[step.tubeA];
         TubeObject tubeB = tubeLayoutComponent.tubeList[step.tubeB];
 
+        // Trừ điểm khi undo tube đã resolve
         currentScore -= step.point;
         txtScore.text = "Score: " + currentScore;
         
         gameState = GameState.MOVING;
 
-        Debug.Log("Moving DoMOVE 0");
         tubeB.ballObjects[tubeB.ballObjects.Count - 1].transform
             .DOMove(tubeB.posTop.transform.position, 0.15f).OnComplete(() =>
             {
-                Debug.Log("Moving DoMOVE 1");
                 tubeB.ballObjects[tubeB.ballObjects.Count - 1].transform
                     .DOMove(tubeA.posTop.transform.position, 0.15f).OnComplete(() =>
                     {
-                        Debug.Log("OnComplete -- DoMOVE 1");
                         tubeA.ballObjects.Add(
                             tubeB.ballObjects[tubeB.ballObjects.Count - 1]);
                         
                         tubeB.ballObjects.Remove(
                             tubeB.ballObjects[tubeB.ballObjects.Count - 1]);
                         
-                        Debug.Log("Moving DoMOVE 2");
                         tubeA.ballObjects[tubeA.ballObjects.Count - 1].transform
                             .DOMove(tubeA.posList[tubeA.ballObjects.Count - 1].transform.position, 0.15f).OnComplete(
                                 () =>
                                 {
-                                    Debug.Log("OnComplete -- DoMOVE 2");
                                     gameState = GameState.PLAYING;
                                     listStepMoved.Remove(step);
                                 });
                     });
             });
 
-        Debug.Log("Undo Done!!");
+        Debug.Log("Undo Completed!!");
     }
 
     public void OnClickBtnUndo()
@@ -262,20 +260,15 @@ public class GameManager : MonoBehaviour
         if (selectedTube != null)
         {
             gameState = GameState.MOVING;
-            Debug.Log("DOMove step 0");
             selectedTube.ballObjects[selectedTube.ballObjects.Count - 1].transform
                 .DOMove(
                     selectedTube.posList[selectedTube.ballObjects.Count - 1].transform
                         .position, 0.15f).OnComplete(() =>
                 {
-                    Debug.Log("DOMove step 1");
                     // gameState = GameState.PLAYING;
                     selectedTube = null;
-
                     DoUndoMove();
                 });
-            Debug.Log("DOMove step 2");
-
         }
         else
         {
@@ -402,6 +395,10 @@ public class GameManager : MonoBehaviour
             tubeLayoutComponent.tubeList[i].ballObjects.Clear();
         }
         FillBall();
+
+        // Reset lại timer
+        remainningTime = maxDuration;
+        UpdateTimer();
     }
 
     public void FillBall()
@@ -418,16 +415,16 @@ public class GameManager : MonoBehaviour
             GameObject ballObject = Instantiate(ballPrefab,
                 itemBalls.transform, false);
 
-            // Lấy component BallOject để add vào 1 list dùng để quản lý
+            // Lấy component BallObject để add vào 1 list dùng để quản lý
             BallObject ballObjectComponent = ballObject.GetComponent<BallObject>();
             ballObjectComponent.type = levelData.bubbleTypes[i];
             // Add hết các ball đã tạo ra vào 1 list
             ballList.Add(ballObjectComponent);
 
-            //Add ball vào từng tube theo tubeIndex
+            // Add ball vào từng tube theo tubeIndex
             tubeLayoutComponent.tubeList[tubeIndex].ballObjects.Add(ballObjectComponent);
 
-            //Đặt ballobject vào vị trí các pos trong postList
+            // Đặt ballObject vào vị trí các pos trong postList thuộc mỗi tube
             ballObject.transform.position =
                 tubeLayoutComponent.tubeList[tubeIndex].posList[ballIndex].transform.position;
             ballObject.transform.localScale = tubeLayoutComponent.GetTubeScale();
@@ -436,14 +433,19 @@ public class GameManager : MonoBehaviour
                 tubeLayoutComponent.tubeList[tubeIndex].posList[ballIndex].transform.rotation;
         }
     }
-
-
+    
     public void DoWin()
     {
-        StopCoroutine(countdownTimer);
+        // winPanel.SetActive(true);
         Debug.Log("WIN!!!!!");
+        StopCoroutine(countdownTimer);
         userCurrentLevel++;
-        winPanel.SetActive(true);
+        gameState = GameState.PLAYING;
+        remainningTime = 0f;
+        listStepMoved.Clear();
+        Init();
+        txtCurrentLevel.text = "Level: " + userCurrentLevel;
+        txtDiffucultyMode.text = "Mode: " + difficulty;
     }
     
     public void OnClickBtnNext()
@@ -455,7 +457,7 @@ public class GameManager : MonoBehaviour
         txtCurrentLevel.text = "Level: " + userCurrentLevel;
         txtDiffucultyMode.text = "Mode: " + difficulty;
         
-        winPanel.SetActive(false);
+        // winPanel.SetActive(false);
     }
     public void GetLevelDifficulty()
     {
@@ -560,10 +562,44 @@ public class GameManager : MonoBehaviour
         Init();
     }
 
+    public void OnClickBtnPause()
+    {
+        if (gameState != GameState.PLAYING)
+        {
+            return;
+        }
+        pausePanel.SetActive(true);
+        if (countdownTimer != null)
+        {
+            StopCoroutine(countdownTimer);
+        }
+        Time.timeScale = 0;
+    }
+
+    public void OnClickBtnResume()
+    {
+        Time.timeScale = 1;
+        UpdateTimer();
+        pausePanel.SetActive(false);
+    }
     public void OnClickBtnMainMenu()
     {
         Debug.Log("Return to Main Menu");
+        
     }
+
+    public void OnClickBtnWin()
+    {
+        DoWin();
+    }
+    
+    public void OnClickBtnLose()
+    {
+        remainningTime = 0;
+        UpdateTimer();
+    }
+    
+    // END CLASS GameManager.cs
 }
 
 public enum GameState
